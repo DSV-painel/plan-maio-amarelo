@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Maio Amarelo 2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Paleta Solicitada */
+            --cor-detran: #004077;       /* Azul Escuro (Principal) */
+            --cor-azul-medio: #005ca8;   /* Azul Médio */
+            --cor-azul-claro: #a4cfed;   /* Azul Claro */
+            
+            --cor-maio-amarelo: #FFFCAD; /* Amarelo Fundo */
+            --cor-maio-destaque: #fdf57a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        /* Cores Personalizadas Classes Utilitárias */
+        .bg-detran { background-color: var(--cor-detran); }
+        .text-detran { color: var(--cor-detran); }
+        .border-detran { border-color: var(--cor-detran); }
+        
+        .bg-azul-medio { background-color: var(--cor-azul-medio); }
+        .text-azul-medio { color: var(--cor-azul-medio); }
+        .border-azul-medio { border-color: var(--cor-azul-medio); }
+
+        .bg-azul-claro { background-color: var(--cor-azul-claro); }
+        .border-azul-claro { border-color: var(--cor-azul-claro); }
+        
+        .bg-maio { background-color: var(--cor-maio-amarelo); }
+        
+        /* Estilo do Card do Dia */
+        .dia-card {
+            transition: all 0.2s ease;
+            min-height: 110px;
+        }
+        
+        .dia-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-color: var(--cor-azul-medio);
+        }
+
+        .dia-selecionado {
+            background-color: var(--cor-maio-amarelo) !important;
+            border: 2px solid #f6d32d !important; /* Amarelo mais escuro para borda */
+            transform: scale(1.02);
+            z-index: 10;
+        }
+
+        /* Inputs transparentes para edição inline */
+        .input-editavel {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .input-editavel:hover, .input-editavel:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255,255,255,0.5);
+            outline: none;
+        }
+        
+        /* Inputs da linha de metadados */
+        .meta-input {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.875rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .meta-input:focus {
+            border-color: var(--cor-azul-medio);
+            outline: none;
+            background-color: #fff;
+        }
+
+        /* Modal Animation */
+        .modal-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Loading Indicator */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 40;
+            backdrop-filter: blur(1px);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen text-slate-700 relative pb-20">
+
+    <!-- Cabeçalho Principal -->
+    <header class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-col md:flex-row justify-between items-center border-l-8 border-detran">
+        <div class="flex items-center gap-3 mb-4 md:mb-0">
+            <!-- Ícone com fundo Azul Claro -->
+            <div class="bg-[var(--cor-azul-claro)] p-2 rounded-full bg-opacity-30">
+                <i class="fa-solid fa-calendar-days text-detran text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black tracking-wide uppercase flex items-center gap-2">
+                    <span class="text-detran">PLANEJAMENTO</span>
+                    <span class="text-gray-300 text-2xl font-light">|</span>
+                    <span class="text-yellow-500">MAIO AMARELO</span>
+                </h1>
+                <div class="flex items-center gap-2">
+                    <p class="text-xs text-azul-medio font-bold tracking-widest ml-1">2026</p>
+                    <span id="status-cloud" class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold border border-green-200 hidden"><i class="fa-solid fa-cloud"></i> Online</span>
+                </div>
+            </div>
+        </div>
+        <button onclick="window.abrirModalNovoEvento()" class="bg-detran text-white px-6 py-2 rounded-lg font-semibold hover:bg-azul-medio transition flex items-center gap-2 shadow-md">
+            <i class="fa-solid fa-plus"></i> Novo Evento
+        </button>
+    </header>
+
+    <!-- Container do Calendário -->
+    <main class="bg-white rounded-xl shadow-md p-6 mb-8 border-t border-azul-claro relative">
+        <div id="loading-calendario" class="loading-overlay rounded-xl">
+            <div class="animate-spin text-detran text-3xl"><i class="fa-solid fa-circle-notch"></i></div>
+        </div>
+
+        <!-- Navegação do Mês (Botões removidos para foco exclusivo em Maio) -->
+        <div class="flex items-center justify-center gap-8 mb-8">
+            <div class="text-center">
+                <h2 class="text-4xl font-extrabold text-detran">Maio</h2>
+                <p class="text-lg text-azul-medio font-medium tracking-widest">2026</p>
+            </div>
+        </div>
+
+        <!-- Cabeçalho Dias da Semana -->
+        <div class="grid grid-cols-7 text-center mb-4 border-b border-azul-claro pb-2">
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Dom</div>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Seg</div>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ter</div>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Qua</div>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Qui</div>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Sex</div>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Sáb</div>
+        </div>
+
+        <!-- Grid do Calendário -->
+        <div id="grid-calendario" class="grid grid-cols-7 gap-2 md:gap-4">
+            <!-- Renderizado via JS -->
+        </div>
+    </main>
+
+    <!-- Área de Desdobramento Simplificada -->
+    <section id="painel-detalhes" class="hidden bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 mb-10 transition-all duration-500 ease-in-out">
+        
+        <!-- Faixa de Título e Categoria -->
+        <div class="bg-detran px-6 py-6 border-b border-azul-medio flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-white">
+            <div class="w-full">
+                <div class="flex items-center gap-2 text-yellow-300 text-xs font-bold uppercase mb-1 opacity-80">
+                    <i class="fa-regular fa-calendar"></i> <span id="data-display">01 de Maio</span>
+                </div>
+                <input type="text" id="detalhe-titulo" class="input-editavel text-2xl font-bold text-white mb-1 placeholder-blue-300" value="Planejamento do Dia">
+                
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-xs text-azul-claro font-bold uppercase">Categoria:</span>
+                    <input type="text" id="detalhe-subtitulo" class="input-editavel text-sm text-white font-medium w-auto min-w-[150px] border-b border-azul-claro px-1 py-0" value="Geral">
+                </div>
+            </div>
+            <!-- Botão de Edição removido -->
+        </div>
+
+        <!-- Linha de Metadados (Principais Informações) -->
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <label class="text-xs font-bold text-azul-medio uppercase mb-1 block"><i class="fa-regular fa-clock mr-1"></i> Horário</label>
+                <input type="text" id="meta-horario" class="meta-input" placeholder="Ex: 09:00 - 12:00">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-azul-medio uppercase mb-1 block"><i class="fa-solid fa-location-dot mr-1"></i> Local</label>
+                <input type="text" id="meta-local" class="meta-input" placeholder="Ex: Av. Paulista, 1000">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-azul-medio uppercase mb-1 block"><i class="fa-solid fa-user-tie mr-1"></i> Responsável</label>
+                <input type="text" id="meta-responsavel" class="meta-input" placeholder="Ex: Coord. João Silva">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-azul-medio uppercase mb-1 block"><i class="fa-solid fa-users mr-1"></i> Público Est.</label>
+                <input type="text" id="meta-publico" class="meta-input" placeholder="Ex: 200 pessoas">
+            </div>
+        </div>
+
+        <!-- Conteúdo: Resumo + Apoio + Links -->
+        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
+            
+            <!-- Coluna Esquerda: Resumo Estratégico (2/3 da largura) -->
+            <div class="md:col-span-2 flex flex-col gap-6">
+                
+                <!-- Resumo Estratégico -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:border-azul-claro transition">
+                    <h4 class="text-detran font-bold text-sm flex items-center gap-2 mb-3">
+                        <i class="fa-regular fa-file-lines text-azul-medio"></i> Resumo Estratégico do Evento
+                    </h4>
+                    <textarea id="texto-visao" class="w-full bg-transparent border-none focus:ring-0 text-sm text-gray-600 resize-none h-[150px]" placeholder="Descreva aqui o objetivo principal, metodologia resumida e pontos de atenção..."></textarea>
+                </div>
+
+                <!-- Validação da Presidência (Padronizado) -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:border-azul-claro transition">
+                    <h4 class="text-detran font-bold text-sm flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-user-shield text-azul-medio"></i> Validação da Presidência
+                    </h4>
+                    <textarea id="texto-apoio" class="w-full bg-transparent border-none focus:ring-0 text-sm text-gray-600 resize-none h-[100px]" placeholder="Descreva o que é necessário da Presidência: Assinatura de ofício, Gravação de vídeo, Presença no palco, Aprovação de verba..."></textarea>
+                </div>
+
+            </div>
+
+            <!-- Coluna Direita: Central de Documentos (1/3 da largura) -->
+            <div class="md:col-span-1 flex flex-col gap-4">
+                <div class="bg-[var(--cor-azul-claro)] bg-opacity-10 rounded-lg border border-azul-claro p-4 h-full">
+                    <h4 class="text-detran font-bold text-sm flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-folder-open text-yellow-600"></i> Documentos de Detalhamento
+                    </h4>
+                    
+                    <!-- Lista de Links -->
+                    <div id="lista-links" class="space-y-2 mb-4 overflow-y-auto max-h-[120px]">
+                        <!-- Itens renderizados via JS -->
+                    </div>
+
+                    <!-- Adicionar Novo Link -->
+                    <div class="mt-auto border-t border-azul-claro pt-3">
+                        <p class="text-xs font-bold text-detran mb-2">Adicionar Documento:</p>
+                        <div class="flex flex-col gap-2">
+                            <input type="text" id="novo-link-nome" placeholder="Nome (Ex: Minuta)" class="text-xs p-2 rounded border border-blue-200 focus:outline-none focus:border-detran bg-white">
+                            <input type="text" id="novo-link-url" placeholder="Link (URL)" class="text-xs p-2 rounded border border-blue-200 focus:outline-none focus:border-detran bg-white">
+                            <button onclick="window.adicionarLink()" class="bg-detran text-white text-xs font-bold py-1.5 rounded hover:bg-azul-medio transition">
+                                <i class="fa-solid fa-plus mr-1"></i> Vincular
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Rodapé de Ações -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+             <div class="text-xs text-gray-400 italic">
+                <i class="fa-solid fa-info-circle"></i> Os links redirecionam para plataformas externas.
+             </div>
+             <div class="flex gap-3">
+                <!-- Botão Excluir / Cancelar -->
+                <button id="btn-excluir-acao" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-4 py-2 text-sm font-semibold transition flex items-center gap-2 border border-red-200 rounded" onclick="window.excluirEvento()">
+                    <i class="fa-regular fa-trash-can"></i> <span>Excluir Evento</span>
+                </button>
+                <button id="btn-salvar" class="bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-700 transition font-semibold flex items-center gap-2" onclick="window.salvarAlteracoes()">
+                    <i class="fa-solid fa-check"></i> Salvar Alterações
+                </button>
+             </div>
+        </div>
+    </section>
+
+    <!-- Modal Novo Evento -->
+    <div id="modal-novo-evento" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 modal-fade-in overflow-hidden">
+            <div class="bg-detran p-4 flex justify-between items-center border-b border-azul-medio">
+                <h3 class="text-white font-bold text-lg"><i class="fa-solid fa-calendar-plus mr-2 text-yellow-300"></i>Novo Evento</h3>
+                <button onclick="window.fecharModalNovoEvento()" class="text-white hover:text-yellow-300 transition">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Título do Evento</label>
+                    <input type="text" id="novo-titulo" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-detran focus:border-detran focus:outline-none transition" placeholder="Ex: Blitz Educativa Centro">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Data (Maio/2026)</label>
+                    <div class="relative">
+                        <select id="novo-dia" class="w-full border border-gray-300 rounded-lg p-2.5 appearance-none focus:ring-2 focus:ring-detran focus:outline-none bg-white">
+                            <!-- Preenchido via JS -->
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Resumo Inicial</label>
+                    <textarea id="novo-descricao" rows="3" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-detran focus:outline-none resize-none" placeholder="Breve descrição..."></textarea>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 flex justify-end gap-3 border-t">
+                <button onclick="window.fecharModalNovoEvento()" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg font-medium transition text-sm">Cancelar</button>
+                <button onclick="window.confirmarNovoEvento()" class="px-6 py-2 bg-detran text-white rounded-lg font-bold hover:bg-azul-medio transition shadow-lg text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Criar Evento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão (NOVO) -->
+    <div id="modal-exclusao" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 modal-fade-in overflow-hidden">
+            <div class="p-6 text-center">
+                <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-triangle-exclamation text-red-600 text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Excluir Evento?</h3>
+                <p class="text-sm text-gray-600 mb-6">Esta ação não poderá ser desfeita. O evento e todos os dados vinculados serão removidos.</p>
+                
+                <div class="flex gap-3 justify-center">
+                    <button onclick="window.fecharModalExclusao()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition text-sm">Cancelar</button>
+                    <button onclick="window.executarExclusao()" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition text-sm shadow-md flex items-center gap-2">
+                        <i class="fa-regular fa-trash-can"></i> Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Aviso Genérico (Substitui Alert) -->
+    <div id="modal-aviso" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[70] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 modal-fade-in overflow-hidden">
+            <div class="p-6 text-center">
+                <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-info text-blue-600 text-xl"></i>
+                </div>
+                <p id="msg-aviso" class="text-sm font-medium text-gray-700 mb-6">Mensagem aqui</p>
+                <button onclick="window.fecharModalAviso()" class="px-6 py-2 bg-detran text-white rounded-lg font-semibold hover:bg-azul-medio transition text-sm">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Variáveis de Estado
+        let currentUser = null;
+        let eventosData = {}; // Começa vazio e popula via Firestore
+        const totalDias = 31;
+        const diaSemanaInicio = 5; // 0=Dom, 5=Sexta
+        let diaSelecionadoAtual = null;
+        let linksTemp = []; 
+
+        // Elementos DOM
+        const gridCalendario = document.getElementById('grid-calendario');
+        const painelDetalhes = document.getElementById('painel-detalhes');
+        const dataDisplay = document.getElementById('data-display');
+        const detalheTitulo = document.getElementById('detalhe-titulo');
+        const detalheSubtitulo = document.getElementById('detalhe-subtitulo');
+        const metaHorario = document.getElementById('meta-horario');
+        const metaLocal = document.getElementById('meta-local');
+        const metaResponsavel = document.getElementById('meta-responsavel');
+        const metaPublico = document.getElementById('meta-publico');
+        const textoVisao = document.getElementById('texto-visao');
+        const textoApoio = document.getElementById('texto-apoio'); 
+        const listaLinksContainer = document.getElementById('lista-links');
+        const btnExcluirAcao = document.getElementById('btn-excluir-acao');
+        const btnSalvar = document.getElementById('btn-salvar');
+        const loadingCalendario = document.getElementById('loading-calendario');
+        const statusCloud = document.getElementById('status-cloud');
+
+        // Modais
+        const modalNovoEvento = document.getElementById('modal-novo-evento');
+        const modalExclusao = document.getElementById('modal-exclusao');
+        const modalAviso = document.getElementById('modal-aviso');
+        const msgAviso = document.getElementById('msg-aviso');
+        const selectDia = document.getElementById('novo-dia');
+
+        // --- AUTENTICAÇÃO E INICIALIZAÇÃO ---
+        
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erro na autenticação:", error);
+                mostrarAviso("Erro ao conectar com servidor.");
+            }
+        };
+
+        // Escuta mudanças na autenticação
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                statusCloud.classList.remove('hidden');
+                configurarListenerFirestore(user.uid);
+            } else {
+                currentUser = null;
+            }
+        });
+
+        // Configura Listener do Firestore (Tempo Real)
+        function configurarListenerFirestore(userId) {
+            const eventsRef = collection(db, 'artifacts', appId, 'users', userId, 'events');
+            
+            // Listener em tempo real
+            onSnapshot(eventsRef, (snapshot) => {
+                eventosData = {}; // Limpa dados locais
+                snapshot.forEach((doc) => {
+                    // O ID do documento é o número do dia (ex: "1", "12")
+                    eventosData[parseInt(doc.id)] = doc.data();
+                });
+                
+                // Remove loading e renderiza
+                loadingCalendario.classList.add('hidden');
+                renderizarCalendario();
+
+                // Se houver um dia selecionado, atualiza o painel para refletir mudanças externas (se houver)
+                // Mas cuidado para não sobrescrever o que o usuário está digitando se for ele mesmo.
+                // Por simplicidade, atualizamos o grid visualmente.
+            }, (error) => {
+                console.error("Erro ao buscar dados:", error);
+                mostrarAviso("Erro de conexão com banco de dados.");
+                loadingCalendario.classList.add('hidden');
+            });
+        }
+
+        // --- LÓGICA DO CALENDÁRIO (Adaptada para Module) ---
+
+        function renderizarCalendario() {
+            gridCalendario.innerHTML = '';
+            for (let i = 0; i < diaSemanaInicio; i++) {
+                const vazio = document.createElement('div');
+                vazio.className = 'bg-transparent h-24 md:h-32 hidden md:block border border-transparent';
+                gridCalendario.appendChild(vazio);
+            }
+            for (let dia = 1; dia <= totalDias; dia++) {
+                const card = document.createElement('div');
+                card.className = `dia-card bg-white border border-gray-200 rounded-lg p-2 md:p-3 relative cursor-pointer flex flex-col justify-between overflow-hidden`;
+                
+                let eventoHtml = '';
+                if (eventosData[dia]) {
+                    const evt = eventosData[dia];
+                    eventoHtml = `
+                        <div class="mt-auto border-l-4 border-yellow-500 bg-[var(--cor-maio-amarelo)] pl-2 py-2 rounded-r text-left shadow-sm">
+                            <p class="text-xs font-bold text-detran leading-tight break-words">${evt.titulo}</p>
+                        </div>
+                    `;
+                } else {
+                     eventoHtml = `<div class="mt-auto h-8"></div>`;
+                }
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-gray-400 font-bold text-sm md:text-base">${dia}</span>
+                    </div>
+                    ${eventoHtml}
+                `;
+                if (dia === diaSelecionadoAtual) card.classList.add('dia-selecionado');
+                card.addEventListener('click', () => selecionarDia(card, dia));
+                gridCalendario.appendChild(card);
+            }
+        }
+
+        window.selecionarDia = function(cardElement, dia) {
+            diaSelecionadoAtual = dia;
+            document.querySelectorAll('.dia-card').forEach(d => d.classList.remove('dia-selecionado'));
+            if(cardElement) cardElement.classList.add('dia-selecionado');
+            
+            painelDetalhes.classList.remove('hidden');
+            dataDisplay.innerText = `${dia} de Maio de 2026`;
+            
+            if (eventosData[dia]) {
+                const evt = eventosData[dia];
+                detalheTitulo.value = evt.titulo;
+                detalheSubtitulo.value = evt.tipo || "Geral";
+                metaHorario.value = evt.horario || "";
+                metaLocal.value = evt.local || "";
+                metaResponsavel.value = evt.responsavel || "";
+                metaPublico.value = evt.publico || "";
+                textoVisao.value = evt.visaoGeral || "";
+                textoApoio.value = evt.apoioPresidencia || ""; 
+                linksTemp = [...(evt.links || [])];
+
+                // Botão vira Excluir
+                btnExcluirAcao.innerHTML = '<i class="fa-regular fa-trash-can"></i> <span>Excluir Evento</span>';
+                btnExcluirAcao.classList.remove('text-gray-500', 'border-gray-200');
+                btnExcluirAcao.classList.add('text-red-500', 'border-red-200', 'hover:bg-red-50');
+            } else {
+                detalheTitulo.value = "Novo Planejamento";
+                detalheSubtitulo.value = "Geral";
+                metaHorario.value = "";
+                metaLocal.value = "";
+                metaResponsavel.value = "";
+                metaPublico.value = "";
+                textoVisao.value = "";
+                textoApoio.value = "";
+                linksTemp = [];
+
+                // Botão vira Cancelar
+                btnExcluirAcao.innerHTML = '<i class="fa-solid fa-times"></i> <span>Cancelar</span>';
+                btnExcluirAcao.classList.remove('text-red-500', 'border-red-200', 'hover:bg-red-50');
+                btnExcluirAcao.classList.add('text-gray-500', 'border-gray-300', 'hover:bg-gray-100');
+            }
+
+            renderizarListaLinks();
+            painelDetalhes.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function renderizarListaLinks() {
+            listaLinksContainer.innerHTML = '';
+            if (linksTemp.length === 0) {
+                listaLinksContainer.innerHTML = '<p class="text-xs text-gray-400 italic p-2">Nenhum documento vinculado.</p>';
+                return;
+            }
+            
+            linksTemp.forEach((link, index) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between bg-white border border-gray-200 rounded p-2 text-xs hover:bg-gray-50 group";
+                div.innerHTML = `
+                    <a href="${link.url}" target="_blank" class="text-blue-600 font-medium hover:underline truncate flex-1 flex items-center gap-2">
+                        <i class="fa-regular fa-file-pdf text-red-500"></i> ${link.nome}
+                    </a>
+                    <button onclick="window.removerLink(${index})" class="text-gray-300 hover:text-red-500 ml-2 opacity-0 group-hover:opacity-100 transition">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                `;
+                listaLinksContainer.appendChild(div);
+            });
+        }
+
+        // --- OPERAÇÕES DE DADOS (Firestore) ---
+
+        window.salvarAlteracoes = async function() {
+            if (!diaSelecionadoAtual || !currentUser) return;
+
+            const originalBtnContent = btnSalvar.innerHTML;
+            btnSalvar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+            btnSalvar.disabled = true;
+
+            const eventoObj = {
+                titulo: detalheTitulo.value,
+                tipo: detalheSubtitulo.value,
+                horario: metaHorario.value,
+                local: metaLocal.value,
+                responsavel: metaResponsavel.value,
+                publico: metaPublico.value,
+                visaoGeral: textoVisao.value,
+                apoioPresidencia: textoApoio.value, 
+                links: [...linksTemp]
+            };
+
+            try {
+                // Salva no Firestore
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'events', diaSelecionadoAtual.toString());
+                await setDoc(docRef, eventoObj);
+
+                // Feedback Visual
+                btnSalvar.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Salvo!';
+                btnSalvar.classList.replace('bg-green-600', 'bg-detran');
+                
+                // Atualiza botão de Excluir para estado correto
+                btnExcluirAcao.innerHTML = '<i class="fa-regular fa-trash-can"></i> <span>Excluir Evento</span>';
+                btnExcluirAcao.classList.remove('text-gray-500', 'border-gray-200');
+                btnExcluirAcao.classList.add('text-red-500', 'border-red-200', 'hover:bg-red-50');
+
+                setTimeout(() => {
+                    btnSalvar.innerHTML = originalBtnContent;
+                    btnSalvar.classList.replace('bg-detran', 'bg-green-600');
+                    btnSalvar.disabled = false;
+                }, 1500);
+
+            } catch (error) {
+                console.error("Erro ao salvar:", error);
+                mostrarAviso("Não foi possível salvar na nuvem.");
+                btnSalvar.innerHTML = originalBtnContent;
+                btnSalvar.disabled = false;
+            }
+        }
+
+        window.executarExclusao = async function() {
+            if (diaSelecionadoAtual && eventosData[diaSelecionadoAtual] && currentUser) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'events', diaSelecionadoAtual.toString());
+                    await deleteDoc(docRef);
+                    
+                    painelDetalhes.classList.add('hidden');
+                    diaSelecionadoAtual = null;
+                } catch (error) {
+                    console.error("Erro ao excluir:", error);
+                    mostrarAviso("Erro ao excluir evento.");
+                }
+            }
+            window.fecharModalExclusao();
+        }
+
+        window.confirmarNovoEvento = async function() {
+            const titulo = document.getElementById('novo-titulo').value;
+            const dia = parseInt(document.getElementById('novo-dia').value);
+            const desc = document.getElementById('novo-descricao').value;
+
+            if(!titulo) {
+                mostrarAviso("Digite um título.");
+                return;
+            }
+            if(!currentUser) {
+                mostrarAviso("Aguarde a conexão com o servidor.");
+                return;
+            }
+
+            const novoEvento = {
+                titulo: titulo,
+                tipo: "Geral",
+                horario: "", local: "", responsavel: "", publico: "",
+                visaoGeral: desc || "",
+                apoioPresidencia: "",
+                links: []
+            };
+
+            try {
+                // Salva diretamente no Firestore
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'events', dia.toString());
+                await setDoc(docRef, novoEvento);
+
+                window.fecharModalNovoEvento();
+                
+                // Limpa campos
+                document.getElementById('novo-titulo').value = '';
+                document.getElementById('novo-descricao').value = '';
+
+                // O listener onSnapshot vai atualizar o calendário automaticamente
+                // Apenas precisamos rolar e selecionar quando o grid atualizar (pode ser feito no snapshot ou aqui com delay)
+                setTimeout(() => {
+                    const cards = gridCalendario.children;
+                    const indiceGrid = diaSemanaInicio + (dia - 1);
+                    if(cards[indiceGrid]) cards[indiceGrid].click();
+                }, 500);
+
+            } catch (error) {
+                console.error("Erro ao criar evento:", error);
+                mostrarAviso("Erro ao criar evento na nuvem.");
+            }
+        }
+
+        // --- FUNÇÕES AUXILIARES GLOBAIS ---
+        
+        window.abrirModalNovoEvento = function() {
+            modalNovoEvento.classList.remove('hidden');
+            document.getElementById('novo-titulo').focus();
+        }
+        window.fecharModalNovoEvento = function() { modalNovoEvento.classList.add('hidden'); }
+        
+        window.abrirModalExclusao = function() { modalExclusao.classList.remove('hidden'); }
+        window.fecharModalExclusao = function() { modalExclusao.classList.add('hidden'); }
+        
+        window.mostrarAviso = function(mensagem) {
+            msgAviso.textContent = mensagem;
+            modalAviso.classList.remove('hidden');
+        }
+        window.fecharModalAviso = function() { modalAviso.classList.add('hidden'); }
+
+        window.adicionarLink = function() {
+            const nome = document.getElementById('novo-link-nome').value.trim();
+            const url = document.getElementById('novo-link-url').value.trim();
+            if (nome && url) {
+                linksTemp.push({ nome, url });
+                renderizarListaLinks();
+                document.getElementById('novo-link-nome').value = '';
+                document.getElementById('novo-link-url').value = '';
+            } else {
+                mostrarAviso("Preencha o nome e o link do documento.");
+            }
+        }
+
+        window.removerLink = function(index) {
+            linksTemp.splice(index, 1);
+            renderizarListaLinks();
+        }
+
+        window.excluirEvento = function() {
+            if (!diaSelecionadoAtual) return;
+            // Modo Cancelar
+            if (!eventosData[diaSelecionadoAtual]) {
+                painelDetalhes.classList.add('hidden');
+                document.querySelectorAll('.dia-card').forEach(d => d.classList.remove('dia-selecionado'));
+                diaSelecionadoAtual = null;
+                return;
+            }
+            // Modo Excluir Real
+            window.abrirModalExclusao();
+        }
+
+        // Preenchimento de Selects (Estático)
+        function preencherSelectDias() {
+            selectDia.innerHTML = '';
+            for(let i=1; i<=31; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.text = `${i} de Maio`;
+                selectDia.appendChild(opt);
+            }
+        }
+
+        // Listeners de Click em Modais
+        modalNovoEvento.addEventListener('click', (e) => { if (e.target === modalNovoEvento) window.fecharModalNovoEvento(); });
+        modalExclusao.addEventListener('click', (e) => { if (e.target === modalExclusao) window.fecharModalExclusao(); });
+        modalAviso.addEventListener('click', (e) => { if (e.target === modalAviso) window.fecharModalAviso(); });
+
+        // Start
+        preencherSelectDias();
+        initAuth();
+
+    </script>
+</body>
+</html>
