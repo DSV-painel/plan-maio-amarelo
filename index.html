@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         :root {
             --cor-detran: #004077;
@@ -28,12 +28,12 @@
         .bg-azul-medio { background-color: var(--cor-azul-medio); }
         .text-azul-medio { color: var(--cor-azul-medio); }
         .bg-maio { background-color: var(--cor-maio-amarelo); }
-        
+
         .dia-card {
             transition: all 0.2s ease;
             min-height: 110px;
         }
-        
+
         .dia-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -70,7 +70,7 @@
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
-        
+
         .loading-overlay {
             position: absolute;
             inset: 0;
@@ -81,14 +81,45 @@
             z-index: 40;
             backdrop-filter: blur(1px);
         }
+        /* Ajustes de contraste e acessibilidade */
+        .dia-card:focus-within { outline: 2px solid #005ca8; outline-offset: 2px; }
+        .dia-selecionado { box-shadow: 0 10px 18px -10px rgba(0,0,0,0.25); }
+        .input-editavel:focus, .meta-input:focus, textarea:focus {
+            outline: 2px solid #005ca8;
+            outline-offset: 2px;
+        }
+        header { position: relative; }
+
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen text-slate-700 relative pb-20">
+    <!-- Faixa institucional Maio Amarelo -->
+    <div class="fixed top-0 left-0 right-0 z-[70]">
+        <div class="bg-[#FFFCAD] border-b border-yellow-300 text-[#004077] text-xs md:text-sm font-bold tracking-wide py-2 px-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-ribbon text-yellow-600"></i>
+                <span>Campanha Maio Amarelo 2026 • “No trânsito, enxergar o outro é salvar vidas”</span>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Espaçamento para a faixa fixa -->
+    <div class="h-10 md:h-11"></div>
+
 
     <header class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-col md:flex-row justify-between items-center border-l-8 border-detran">
-        <div class="flex items-center gap-3">
-            <div class="bg-[var(--cor-azul-claro)] p-2 rounded-full bg-opacity-30">
-                <i class="fa-solid fa-calendar-days text-detran text-xl"></i>
+        <div class="flex items-center gap-4">
+            <!-- Logo Maio Amarelo (ONSV) -->
+            
+
+            <div class="shrink-0 relative">
+                <img src="https://www.detran.sp.gov.br/702a783633529610cd8381ac4f5c7b5b.iix"
+                     alt="Logótipo Detran SP"
+                     id="main-logo"
+                     class="h-10 md:h-12 object-contain"
+                     onerror="handleLogoError(this)">
+                <div class="logo-fallback hidden" id="logo-text">Detran SP</div>
             </div>
             <div>
                 <h1 class="text-2xl font-black tracking-wide uppercase flex items-center gap-2">
@@ -98,7 +129,10 @@
                 </h1>
                 <div class="flex items-center gap-2">
                     <p class="text-xs text-azul-medio font-bold tracking-widest ml-1">2026</p>
-                    <span id="status-cloud" class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-200 hidden"><i class="fa-solid fa-users"></i> Modo Compartilhado</span>
+                    
+                    <span id="status-cloud" class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-200 hidden">
+                        <i class="fa-solid fa-users"></i> Modo Compartilhado
+                    </span>
                 </div>
             </div>
         </div>
@@ -129,6 +163,12 @@
 
         <div id="grid-calendario" class="grid grid-cols-7 gap-2 md:gap-4"></div>
     </main>
+
+    <!-- Logo Maio Amarelo (rodapé após calendário) -->
+    <div class="max-w-6xl mx-auto mb-8 flex justify-center">
+        <img src="https://www.onsv.org.br/source/files/c/18728/Logo_Maio_Amarelo_2026_2-079680_1920-1080-0-0.jpg" alt="Logo Maio Amarelo" class="h-40 md:h-48 object-contain" loading="lazy">
+    </div>
+
 
     <section id="painel-detalhes" class="hidden bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 mb-10 transition-all">
         <div class="bg-detran px-6 py-6 border-b border-azul-medio flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-white">
@@ -165,13 +205,43 @@
 
         <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
             <div class="md:col-span-2 flex flex-col gap-6">
+
+                <!-- NOVO: Objetivo (antes do Resumo Estratégico) -->
+                <div class="bg-white rounded-lg border p-4">
+                    <h4 class="text-detran font-bold text-sm mb-3">Objetivo</h4>
+                    <textarea
+                        id="texto-objetivo"
+                        class="w-full text-sm text-gray-600 resize-none h-[90px] focus:outline-none"
+                        placeholder="Qual é o objetivo deste evento?"
+                    ></textarea>
+                </div>
+
                 <div class="bg-white rounded-lg border p-4">
                     <h4 class="text-detran font-bold text-sm mb-3">Resumo Estratégico</h4>
-                    <textarea id="texto-visao" class="w-full text-sm text-gray-600 resize-none h-[150px] focus:outline-none"></textarea>
+                    <textarea
+                        id="texto-visao"
+                        class="w-full text-sm text-gray-600 resize-none h-[150px] focus:outline-none"
+                        placeholder="Resumo estratégico (contexto, alinhamento, mensagem-chave)..."
+                    ></textarea>
                 </div>
+
+                <!-- NOVO: Detalhamento do Evento (antes da Validação da Presidência) -->
+                <div class="bg-white rounded-lg border p-4">
+                    <h4 class="text-detran font-bold text-sm mb-3">Detalhamento do Evento</h4>
+                    <textarea
+                        id="texto-detalhamento"
+                        class="w-full text-sm text-gray-600 resize-none h-[140px] focus:outline-none"
+                        placeholder="Descreva o formato, dinâmica, pauta, atrações, logística, itens necessários..."
+                    ></textarea>
+                </div>
+
                 <div class="bg-white rounded-lg border p-4">
                     <h4 class="text-detran font-bold text-sm mb-3">Validação da Presidência</h4>
-                    <textarea id="texto-apoio" class="w-full text-sm text-gray-600 resize-none h-[100px] focus:outline-none"></textarea>
+                    <textarea
+                        id="texto-apoio"
+                        class="w-full text-sm text-gray-600 resize-none h-[100px] focus:outline-none"
+                        placeholder="Registros de validação, orientações, condicionantes..."
+                    ></textarea>
                 </div>
             </div>
 
@@ -187,7 +257,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
              <div class="text-xs text-gray-400 italic">Dados sincronizados em tempo real.</div>
              <div class="flex gap-3">
@@ -195,7 +265,14 @@
                 <button id="btn-salvar" class="bg-green-600 text-white px-6 py-2 rounded shadow font-semibold" onclick="window.salvarAlteracoes()">Salvar Alterações</button>
              </div>
         </div>
-    </section>
+    
+
+        <!-- Logo Maio Amarelo (final do detalhamento do evento) -->
+        <div class="px-6 py-5 bg-white border-t flex justify-center">
+            <img src="https://www.onsv.org.br/source/files/c/18728/Logo_Maio_Amarelo_2026_2-079680_1920-1080-0-0.jpg" alt="Logo Maio Amarelo" class="h-36 md:h-40 object-contain" loading="lazy">
+        </div>
+
+</section>
 
     <!-- Modais -->
     <div id="modal-novo-evento" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center backdrop-blur-sm">
@@ -242,7 +319,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let eventosData = {}; 
+        let eventosData = {};
         let diaSelecionadoAtual = null;
         let linksTemp = [];
 
@@ -251,7 +328,7 @@
         const painelDetalhes = document.getElementById('painel-detalhes');
         const loadingCalendario = document.getElementById('loading-calendario');
 
-        // MUDANÇA CHAVE: Agora usamos um caminho global/público para este artifact
+        // Caminho público/compartilhado
         const PUBLIC_PATH = ['artifacts', 'plan-maioamarelo', 'public', 'data', 'events'];
 
         async function init() {
@@ -262,7 +339,7 @@
                     const eventsRef = collection(db, ...PUBLIC_PATH);
                     onSnapshot(eventsRef, (snapshot) => {
                         eventosData = {};
-                        snapshot.forEach(doc => eventosData[parseInt(doc.id)] = doc.data());
+                        snapshot.forEach(docSnap => eventosData[parseInt(docSnap.id)] = docSnap.data());
                         loadingCalendario.classList.add('hidden');
                         renderizarCalendario();
                     });
@@ -277,11 +354,11 @@
                 const card = document.createElement('div');
                 card.className = `dia-card bg-white border border-gray-200 rounded-lg p-2 md:p-3 cursor-pointer flex flex-col justify-between overflow-hidden`;
                 if (dia === diaSelecionadoAtual) card.classList.add('dia-selecionado');
-                
+
                 let evtHtml = `<div class="mt-auto h-8"></div>`;
                 if (eventosData[dia]) {
                     evtHtml = `<div class="mt-auto border-l-4 border-yellow-500 bg-[#FFFCAD] p-1 rounded-r shadow-sm">
-                        <p class="text-[10px] md:text-xs font-bold text-[#004077] truncate">${eventosData[dia].titulo}</p>
+                        <p class="text-[10px] md:text-xs font-bold text-[#004077] break-words leading-tight">${eventosData[dia].titulo}</p>
                     </div>`;
                 }
                 card.innerHTML = `<span class="text-gray-400 font-bold text-sm">${dia}</span>${evtHtml}`;
@@ -296,7 +373,7 @@
             card.classList.add('dia-selecionado');
             painelDetalhes.classList.remove('hidden');
             document.getElementById('data-display').innerText = `${dia} de Maio de 2026`;
-            
+
             if (eventosData[dia]) {
                 const e = eventosData[dia];
                 document.getElementById('detalhe-titulo').value = e.titulo;
@@ -305,8 +382,13 @@
                 document.getElementById('meta-local').value = e.local || "";
                 document.getElementById('meta-responsavel').value = e.responsavel || "";
                 document.getElementById('meta-publico').value = e.publico || "";
+
+                // NOVOS CAMPOS
+                document.getElementById('texto-objetivo').value = e.objetivo || "";
                 document.getElementById('texto-visao').value = e.visaoGeral || "";
+                document.getElementById('texto-detalhamento').value = e.detalhamento || "";
                 document.getElementById('texto-apoio').value = e.apoioPresidencia || "";
+
                 linksTemp = e.links || [];
             } else {
                 limparForm();
@@ -322,8 +404,13 @@
             document.getElementById('meta-local').value = "";
             document.getElementById('meta-responsavel').value = "";
             document.getElementById('meta-publico').value = "";
+
+            // NOVOS CAMPOS
+            document.getElementById('texto-objetivo').value = "";
             document.getElementById('texto-visao').value = "";
+            document.getElementById('texto-detalhamento').value = "";
             document.getElementById('texto-apoio').value = "";
+
             linksTemp = [];
         }
 
@@ -341,6 +428,7 @@
             if (!diaSelecionadoAtual) return;
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Salvando...";
+
             const data = {
                 titulo: document.getElementById('detalhe-titulo').value,
                 tipo: document.getElementById('detalhe-subtitulo').value,
@@ -348,11 +436,18 @@
                 local: document.getElementById('meta-local').value,
                 responsavel: document.getElementById('meta-responsavel').value,
                 publico: document.getElementById('meta-publico').value,
+
+                // NOVOS CAMPOS
+                objetivo: document.getElementById('texto-objetivo').value,
                 visaoGeral: document.getElementById('texto-visao').value,
+                detalhamento: document.getElementById('texto-detalhamento').value,
                 apoioPresidencia: document.getElementById('texto-apoio').value,
+
                 links: linksTemp
             };
+
             await setDoc(doc(db, ...PUBLIC_PATH, diaSelecionadoAtual.toString()), data);
+
             btn.innerText = "Salvo!";
             setTimeout(() => btn.innerText = "Salvar Alterações", 2000);
         };
@@ -367,11 +462,24 @@
             const dia = document.getElementById('novo-dia').value;
             const titulo = document.getElementById('novo-titulo').value;
             if (!titulo) return;
-            await setDoc(doc(db, ...PUBLIC_PATH, dia.toString()), { 
-                titulo, 
+
+            await setDoc(doc(db, ...PUBLIC_PATH, dia.toString()), {
+                titulo,
+                tipo: "Geral",
+                horario: "",
+                local: "",
+                responsavel: "",
+                publico: "",
+
+                // NOVOS CAMPOS
+                objetivo: "",
                 visaoGeral: document.getElementById('novo-descricao').value,
-                links: [] 
+                detalhamento: "",
+                apoioPresidencia: "",
+
+                links: []
             });
+
             window.fecharModalNovoEvento();
         };
 
@@ -380,16 +488,20 @@
         window.fecharModalNovoEvento = () => document.getElementById('modal-novo-evento').classList.add('hidden');
         window.abrirModalExclusao = () => document.getElementById('modal-exclusao').classList.remove('hidden');
         window.fecharModalExclusao = () => document.getElementById('modal-exclusao').classList.add('hidden');
+
         window.adicionarLink = () => {
             const n = document.getElementById('novo-link-nome');
             const u = document.getElementById('novo-link-url');
             if (n.value && u.value) {
                 linksTemp.push({ nome: n.value, url: u.value });
                 renderLinks();
-                n.value = ''; u.value = '';
+                n.value = '';
+                u.value = '';
             }
         };
+
         window.removerLink = (i) => { linksTemp.splice(i, 1); renderLinks(); };
+
         window.excluirEvento = () => {
             if (eventosData[diaSelecionadoAtual]) window.abrirModalExclusao();
             else painelDetalhes.classList.add('hidden');
@@ -398,7 +510,18 @@
         const select = document.getElementById('novo-dia');
         for(let i=1; i<=31; i++) select.add(new Option(`${i} de Maio`, i));
 
+
+        // Fallback do logo (caso o link não renderize como imagem no navegador)
+        window.handleLogoError = (imgEl) => {
+            try {
+                imgEl.style.display = 'none';
+                const fallback = document.getElementById('logo-text');
+                if (fallback) fallback.classList.remove('hidden');
+            } catch(e) {}
+        };
+
         init();
+        
     </script>
 </body>
 </html>
