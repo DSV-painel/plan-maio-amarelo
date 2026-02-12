@@ -90,7 +90,6 @@
         }
         header { position: relative; }
 
-
         /* Responsividade extra */
         .maio-logo {
             width: 100%;
@@ -108,6 +107,20 @@
         @media (min-width: 768px){
             .maio-logo-detalhe{ max-width: 420px; }
         }
+
+        /* Eventos dentro do card */
+        .evt-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            border-left: 4px solid #f6d32d;
+            background: var(--cor-maio-amarelo);
+            padding: 4px 6px;
+            border-radius: 0 6px 6px 0;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+            cursor: pointer;
+        }
+        .evt-item:hover { filter: brightness(0.985); }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen text-slate-700 relative pb-20">
@@ -118,29 +131,24 @@
                 <i class="fa-solid fa-ribbon text-yellow-600"></i>
                 <span>Campanha Maio Amarelo 2026 • “No trânsito, enxergar o outro é salvar vidas”</span>
             </div>
-            
         </div>
     </div>
 
     <!-- Espaçamento para a faixa fixa -->
     <div class="h-10 md:h-11"></div>
 
-
-    <header class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-col md:flex-row justify-between items-center border-l-8 border-detran">
+    <header class="bg-white rounded-xl shadow-sm p-6 md:p-8 mb-8 flex flex-col md:flex-row justify-between items-center border-l-8 border-detran">
         <div class="flex items-center gap-4">
-            <!-- Logo Maio Amarelo (ONSV) -->
-            
-
             <div class="shrink-0 relative">
                 <img src="https://www.detran.sp.gov.br/702a783633529610cd8381ac4f5c7b5b.iix"
                      alt="Logótipo Detran SP"
                      id="main-logo"
-                     class="h-10 md:h-12 object-contain"
+                     class="h-14 md:h-16 object-contain"
                      onerror="handleLogoError(this)">
                 <div class="logo-fallback hidden" id="logo-text">Detran SP</div>
             </div>
             <div>
-                <h1 class="text-2xl font-black tracking-wide uppercase flex items-center gap-2">
+                <h1 class="text-3xl md:text-4xl font-black tracking-wide uppercase flex items-center gap-2">
                     <span class="text-detran">PLANEJAMENTO</span>
                     <span class="text-gray-300">|</span>
                     <span class="text-yellow-500">MAIO AMARELO 2026</span>
@@ -185,7 +193,6 @@
         <img src="https://www.onsv.org.br/source/files/c/18728/Logo_Maio_Amarelo_2026_2-079680_1920-1080-0-0.jpg" alt="Logo Maio Amarelo" class="maio-logo object-contain" loading="lazy">
     </div>
 
-
     <section id="painel-detalhes" class="hidden bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 mb-10 transition-all">
         <div class="bg-detran px-6 py-6 border-b border-azul-medio flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-white">
             <div class="w-full">
@@ -193,10 +200,6 @@
                     <i class="fa-regular fa-calendar"></i> <span id="data-display"></span>
                 </div>
                 <input type="text" id="detalhe-titulo" class="input-editavel text-2xl font-bold text-white mb-1" value="">
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="text-xs text-azul-claro font-bold uppercase">Categoria:</span>
-                    <input type="text" id="detalhe-subtitulo" class="input-editavel text-sm text-white font-medium w-auto" value="">
-                </div>
             </div>
         </div>
 
@@ -222,7 +225,7 @@
         <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
             <div class="md:col-span-2 flex flex-col gap-6">
 
-                <!-- NOVO: Objetivo (antes do Resumo Estratégico) -->
+                <!-- Objetivo (antes do Resumo Estratégico) -->
                 <div class="bg-white rounded-lg border p-4">
                     <h4 class="text-detran font-bold text-sm mb-3">Objetivo</h4>
                     <textarea
@@ -241,7 +244,7 @@
                     ></textarea>
                 </div>
 
-                <!-- NOVO: Detalhamento do Evento (antes da Validação da Presidência) -->
+                <!-- Detalhamento do Evento (antes da Validação da Presidência) -->
                 <div class="bg-white rounded-lg border p-4">
                     <h4 class="text-detran font-bold text-sm mb-3">Detalhamento do Evento</h4>
                     <textarea
@@ -281,23 +284,22 @@
                 <button id="btn-salvar" class="bg-green-600 text-white px-6 py-2 rounded shadow font-semibold w-full sm:w-auto" onclick="window.salvarAlteracoes()">Salvar Alterações</button>
              </div>
         </div>
-    
 
         <!-- Logo Maio Amarelo (final do detalhamento do evento) -->
         <div class="px-6 py-5 bg-white border-t flex justify-center">
             <img src="https://www.onsv.org.br/source/files/c/18728/Logo_Maio_Amarelo_2026_2-079680_1920-1080-0-0.jpg" alt="Logo Maio Amarelo" class="maio-logo-detalhe object-contain" loading="lazy">
         </div>
-
-</section>
+    </section>
 
     <!-- Modais -->
     <div id="modal-novo-evento" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 modal-fade-in overflow-hidden">
-            <div class="bg-detran p-4 flex justify-between items-center"><h3 class="text-white font-bold">Novo Evento</h3></div>
+            <div class="bg-detran p-4 flex justify-between items-center">
+                <h3 class="text-white font-bold">Novo Evento</h3>
+            </div>
             <div class="p-6 space-y-4">
                 <input type="text" id="novo-titulo" class="w-full border rounded-lg p-2.5" placeholder="Título do Evento">
                 <select id="novo-dia" class="w-full border rounded-lg p-2.5 bg-white"></select>
-                <textarea id="novo-descricao" rows="3" class="w-full border rounded-lg p-2.5" placeholder="Resumo inicial..."></textarea>
             </div>
             <div class="bg-gray-50 p-4 flex justify-end gap-3">
                 <button onclick="window.fecharModalNovoEvento()" class="px-4 py-2 text-sm">Cancelar</button>
@@ -319,7 +321,15 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            deleteDoc, 
+            onSnapshot,
+            addDoc 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDbabZnM8MQgnH9f7N4KP4IyPgnib1pANw",
@@ -335,8 +345,10 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let eventosData = {};
+        // Estrutura: events/{dia}/eventos/{eventoId}
+        let eventosData = {};                 // { [dia]: Array<{id, ...}> }
         let diaSelecionadoAtual = null;
+        let eventoSelecionadoId = null;
         let linksTemp = [];
 
         // UI Elements
@@ -347,81 +359,175 @@
         // Caminho público/compartilhado
         const PUBLIC_PATH = ['artifacts', 'plan-maioamarelo', 'public', 'data', 'events'];
 
+        // Guardar unsubscribes dos listeners (1 por dia)
+        const dayUnsubs = [];
+
         async function init() {
             await signInAnonymously(auth);
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     document.getElementById('status-cloud').classList.remove('hidden');
-                    const eventsRef = collection(db, ...PUBLIC_PATH);
-                    onSnapshot(eventsRef, (snapshot) => {
-                        eventosData = {};
-                        snapshot.forEach(docSnap => eventosData[parseInt(docSnap.id)] = docSnap.data());
-                        loadingCalendario.classList.add('hidden');
-                        renderizarCalendario();
-                    });
+                    setupRealtime();
                 }
             });
+        }
+
+        function setupRealtime() {
+            // limpa listeners anteriores (se houver)
+            while (dayUnsubs.length) {
+                try { dayUnsubs.pop()(); } catch(e) {}
+            }
+
+            eventosData = {};
+            let loadedDays = 0;
+
+            for (let dia = 1; dia <= 31; dia++) {
+                const eventosRef = collection(db, ...PUBLIC_PATH, dia.toString(), 'eventos');
+                const unsub = onSnapshot(eventosRef, (snapshot) => {
+                    const arr = [];
+                    snapshot.forEach(docSnap => arr.push({ id: docSnap.id, ...docSnap.data() }));
+
+                    // ordena por horário (se houver) senão por título
+                    arr.sort((a,b) => {
+                        const ha = (a.horario || '').trim();
+                        const hb = (b.horario || '').trim();
+                        if (ha && hb) return ha.localeCompare(hb);
+                        if (ha && !hb) return -1;
+                        if (!ha && hb) return 1;
+                        return (a.titulo || '').localeCompare(b.titulo || '');
+                    });
+
+                    eventosData[dia] = arr;
+
+                    // primeiro carregamento: esconde loading quando os 31 dias tiverem retornado ao menos 1 vez
+                    if (!eventosData.__loadedMarker?.[dia]) {
+                        eventosData.__loadedMarker = eventosData.__loadedMarker || {};
+                        eventosData.__loadedMarker[dia] = true;
+                        loadedDays++;
+                        if (loadedDays >= 31) loadingCalendario.classList.add('hidden');
+                    }
+
+                    renderizarCalendario();
+
+                    // se o evento selecionado foi alterado/removido, atualiza painel
+                    if (diaSelecionadoAtual === dia && eventoSelecionadoId) {
+                        const found = (eventosData[dia] || []).find(e => e.id === eventoSelecionadoId);
+                        if (!found) {
+                            // evento deletado
+                            painelDetalhes.classList.add('hidden');
+                            eventoSelecionadoId = null;
+                        } else {
+                            preencherPainel(found);
+                        }
+                    }
+                });
+                dayUnsubs.push(unsub);
+            }
         }
 
         function renderizarCalendario() {
             gridCalendario.innerHTML = '';
             for (let i = 0; i < 5; i++) gridCalendario.appendChild(document.createElement('div'));
+
             for (let dia = 1; dia <= 31; dia++) {
                 const card = document.createElement('div');
                 card.className = `dia-card bg-white border border-gray-200 rounded-lg p-2 md:p-3 cursor-pointer flex flex-col justify-between overflow-hidden`;
                 if (dia === diaSelecionadoAtual) card.classList.add('dia-selecionado');
 
+                const eventos = eventosData[dia] || [];
                 let evtHtml = `<div class="mt-auto h-8"></div>`;
-                if (eventosData[dia]) {
-                    evtHtml = `<div class="mt-auto border-l-4 border-yellow-500 bg-[#FFFCAD] p-1 rounded-r shadow-sm">
-                        <p class="text-[11px] md:text-sm font-bold text-[#004077] break-words leading-tight">${eventosData[dia].titulo}</p>
-                    </div>`;
+
+                if (eventos.length > 0) {
+                    const list = eventos.map(e => `
+                        <button class="evt-item mt-1" title="${escapeHtml(e.titulo || '')}"
+                            onclick="window.abrirEventoDoDia(event, ${dia}, '${e.id}')">
+                            <span class="text-[10px] md:text-xs font-bold text-[#004077] break-words leading-tight">${escapeHtml(e.titulo || 'Sem título')}</span>
+                        </button>
+                    `).join('');
+
+                    evtHtml = `<div class="mt-auto">${list}</div>`;
                 }
+
                 card.innerHTML = `<span class="text-gray-400 font-bold text-sm">${dia}</span>${evtHtml}`;
-                card.onclick = () => window.selecionarDia(card, dia);
+                card.onclick = () => window.selecionarDia(dia);
                 gridCalendario.appendChild(card);
             }
         }
 
-        window.selecionarDia = (card, dia) => {
+        // Ao clicar no "vazio" do dia: abre o primeiro evento (se existir); caso contrário, abre um formulário em branco.
+        window.selecionarDia = (dia) => {
             diaSelecionadoAtual = dia;
             document.querySelectorAll('.dia-card').forEach(c => c.classList.remove('dia-selecionado'));
-            card.classList.add('dia-selecionado');
+            const idx = (5 + (dia - 1)); // offset visual (primeiros 5 vazios)
+            const card = gridCalendario.children[idx];
+            if (card) card.classList.add('dia-selecionado');
+
+            const eventos = eventosData[dia] || [];
+            if (eventos.length > 0) {
+                abrirEvento(dia, eventos[0].id);
+            } else {
+                eventoSelecionadoId = null;
+                painelDetalhes.classList.remove('hidden');
+                document.getElementById('data-display').innerText = `${dia} de Maio de 2026`;
+                limparForm();
+                renderLinks();
+                painelDetalhes.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        };
+
+        // Clique no nome do evento
+        window.abrirEventoDoDia = (evt, dia, eventoId) => {
+            if (evt) evt.stopPropagation();
+            diaSelecionadoAtual = dia;
+            abrirEvento(dia, eventoId);
+
+            // marca visual no dia
+            document.querySelectorAll('.dia-card').forEach(c => c.classList.remove('dia-selecionado'));
+            const idx = (5 + (dia - 1));
+            const card = gridCalendario.children[idx];
+            if (card) card.classList.add('dia-selecionado');
+        };
+
+        function abrirEvento(dia, eventoId) {
+            eventoSelecionadoId = eventoId;
             painelDetalhes.classList.remove('hidden');
             document.getElementById('data-display').innerText = `${dia} de Maio de 2026`;
 
-            if (eventosData[dia]) {
-                const e = eventosData[dia];
-                document.getElementById('detalhe-titulo').value = e.titulo;
-                document.getElementById('detalhe-subtitulo').value = e.tipo || "Geral";
-                document.getElementById('meta-horario').value = e.horario || "";
-                document.getElementById('meta-local').value = e.local || "";
-                document.getElementById('meta-responsavel').value = e.responsavel || "";
-                document.getElementById('meta-publico').value = e.publico || "";
+            const eventos = eventosData[dia] || [];
+            const found = eventos.find(e => e.id === eventoId);
 
-                // NOVOS CAMPOS
-                document.getElementById('texto-objetivo').value = e.objetivo || "";
-                document.getElementById('texto-visao').value = e.visaoGeral || "";
-                document.getElementById('texto-detalhamento').value = e.detalhamento || "";
-                document.getElementById('texto-apoio').value = e.apoioPresidencia || "";
-
-                linksTemp = e.links || [];
+            if (found) {
+                preencherPainel(found);
             } else {
                 limparForm();
             }
+
             renderLinks();
             painelDetalhes.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        };
+        }
+
+        function preencherPainel(e) {
+            document.getElementById('detalhe-titulo').value = e.titulo || "";
+            document.getElementById('meta-horario').value = e.horario || "";
+            document.getElementById('meta-local').value = e.local || "";
+            document.getElementById('meta-responsavel').value = e.responsavel || "";
+            document.getElementById('meta-publico').value = e.publico || "";
+
+            document.getElementById('texto-objetivo').value = e.objetivo || "";
+            document.getElementById('texto-visao').value = e.visaoGeral || "";
+            document.getElementById('texto-detalhamento').value = e.detalhamento || "";
+            document.getElementById('texto-apoio').value = e.apoioPresidencia || "";
+
+            linksTemp = e.links || [];
+        }
 
         function limparForm() {
             document.getElementById('detalhe-titulo').value = "Novo Planejamento";
-            document.getElementById('detalhe-subtitulo').value = "Geral";
             document.getElementById('meta-horario').value = "";
             document.getElementById('meta-local').value = "";
             document.getElementById('meta-responsavel').value = "";
             document.getElementById('meta-publico').value = "";
 
-            // NOVOS CAMPOS
             document.getElementById('texto-objetivo').value = "";
             document.getElementById('texto-visao').value = "";
             document.getElementById('texto-detalhamento').value = "";
@@ -434,26 +540,25 @@
             const container = document.getElementById('lista-links');
             container.innerHTML = linksTemp.map((l, i) => `
                 <div class="flex justify-between items-center bg-white border p-2 text-xs rounded">
-                    <a href="${l.url}" target="_blank" class="text-blue-600 truncate">${l.nome}</a>
+                    <a href="${l.url}" target="_blank" class="text-blue-600 truncate">${escapeHtml(l.nome || l.url || '')}</a>
                     <button onclick="window.removerLink(${i})" class="text-red-300">×</button>
                 </div>
             `).join('') || '<p class="text-xs text-gray-400 italic">Nenhum documento.</p>';
         }
 
         window.salvarAlteracoes = async () => {
-            if (!diaSelecionadoAtual) return;
+            if (!diaSelecionadoAtual || !eventoSelecionadoId) return;
+
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Salvando...";
 
             const data = {
                 titulo: document.getElementById('detalhe-titulo').value,
-                tipo: document.getElementById('detalhe-subtitulo').value,
                 horario: document.getElementById('meta-horario').value,
                 local: document.getElementById('meta-local').value,
                 responsavel: document.getElementById('meta-responsavel').value,
                 publico: document.getElementById('meta-publico').value,
 
-                // NOVOS CAMPOS
                 objetivo: document.getElementById('texto-objetivo').value,
                 visaoGeral: document.getElementById('texto-visao').value,
                 detalhamento: document.getElementById('texto-detalhamento').value,
@@ -462,46 +567,52 @@
                 links: linksTemp
             };
 
-            await setDoc(doc(db, ...PUBLIC_PATH, diaSelecionadoAtual.toString()), data);
+            await setDoc(doc(db, ...PUBLIC_PATH, diaSelecionadoAtual.toString(), 'eventos', eventoSelecionadoId), data, { merge: true });
 
             btn.innerText = "Salvo!";
             setTimeout(() => btn.innerText = "Salvar Alterações", 2000);
         };
 
         window.executarExclusao = async () => {
-            await deleteDoc(doc(db, ...PUBLIC_PATH, diaSelecionadoAtual.toString()));
+            if (!diaSelecionadoAtual || !eventoSelecionadoId) return;
+
+            await deleteDoc(doc(db, ...PUBLIC_PATH, diaSelecionadoAtual.toString(), 'eventos', eventoSelecionadoId));
             painelDetalhes.classList.add('hidden');
+            eventoSelecionadoId = null;
             window.fecharModalExclusao();
         };
 
         window.confirmarNovoEvento = async () => {
-            const dia = document.getElementById('novo-dia').value;
-            const titulo = document.getElementById('novo-titulo').value;
+            const dia = parseInt(document.getElementById('novo-dia').value);
+            const titulo = document.getElementById('novo-titulo').value?.trim();
             if (!titulo) return;
 
-            await setDoc(doc(db, ...PUBLIC_PATH, dia.toString()), {
+            const eventosRef = collection(db, ...PUBLIC_PATH, dia.toString(), 'eventos');
+            const docRef = await addDoc(eventosRef, {
                 titulo,
-                tipo: "Geral",
                 horario: "",
                 local: "",
                 responsavel: "",
                 publico: "",
-
-                // NOVOS CAMPOS
                 objetivo: "",
-                visaoGeral: document.getElementById('novo-descricao').value,
+                visaoGeral: "",
                 detalhamento: "",
                 apoioPresidencia: "",
-
                 links: []
             });
 
             window.fecharModalNovoEvento();
+
+            // abre automaticamente o evento criado
+            window.abrirEventoDoDia(null, dia, docRef.id);
         };
 
         // Helpers
         window.abrirModalNovoEvento = () => document.getElementById('modal-novo-evento').classList.remove('hidden');
-        window.fecharModalNovoEvento = () => document.getElementById('modal-novo-evento').classList.add('hidden');
+        window.fecharModalNovoEvento = () => {
+            document.getElementById('modal-novo-evento').classList.add('hidden');
+            document.getElementById('novo-titulo').value = "";
+        };
         window.abrirModalExclusao = () => document.getElementById('modal-exclusao').classList.remove('hidden');
         window.fecharModalExclusao = () => document.getElementById('modal-exclusao').classList.add('hidden');
 
@@ -519,15 +630,14 @@
         window.removerLink = (i) => { linksTemp.splice(i, 1); renderLinks(); };
 
         window.excluirEvento = () => {
-            if (eventosData[diaSelecionadoAtual]) window.abrirModalExclusao();
+            if (diaSelecionadoAtual && eventoSelecionadoId) window.abrirModalExclusao();
             else painelDetalhes.classList.add('hidden');
         };
 
         const select = document.getElementById('novo-dia');
         for(let i=1; i<=31; i++) select.add(new Option(`${i} de Maio`, i));
 
-
-        // Fallback do logo (caso o link não renderize como imagem no navegador)
+        // Fallback do logo
         window.handleLogoError = (imgEl) => {
             try {
                 imgEl.style.display = 'none';
@@ -536,8 +646,17 @@
             } catch(e) {}
         };
 
+        // Escape básico para strings (evita quebrar HTML ao renderizar títulos)
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
         init();
-        
     </script>
 </body>
 </html>
