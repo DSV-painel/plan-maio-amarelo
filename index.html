@@ -318,26 +318,49 @@
             return { eventos: [legacy] };
         }
 
+        function mostrarErroCarregamento(mensagem) {
+            loadingCalendario.classList.add('hidden');
+            gridCalendario.innerHTML = `
+                <div class="col-span-7 bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm">
+                    ${mensagem}
+                </div>
+            `;
+        }
+
         async function init() {
-            await signInAnonymously(auth);
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error('Erro ao autenticar anonimamente:', error);
+                mostrarErroCarregamento('Não foi possível autenticar no Firebase. Verifique se o login anônimo está ativado no projeto.');
+                return;
+            }
+
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     document.getElementById('status-cloud').classList.remove('hidden');
                     const eventsRef = collection(db, ...PUBLIC_PATH);
-                    onSnapshot(eventsRef, (snapshot) => {
-                        eventosData = {};
-                        snapshot.forEach(docSnap => {
-                            const dia = parseInt(docSnap.id);
-                            eventosData[dia] = normalizarDocDia(dia, docSnap.data());
-                        });
-                        loadingCalendario.classList.add('hidden');
-                        renderizarCalendario();
+                    onSnapshot(
+                        eventsRef,
+                        (snapshot) => {
+                            eventosData = {};
+                            snapshot.forEach(docSnap => {
+                                const dia = parseInt(docSnap.id, 10);
+                                eventosData[dia] = normalizarDocDia(dia, docSnap.data());
+                            });
+                            loadingCalendario.classList.add('hidden');
+                            renderizarCalendario();
 
-                        if (diaSelecionadoAtual) {
-                            const card = document.querySelector(`[data-dia="${diaSelecionadoAtual}"]`);
-                            if (card) window.selecionarDia(card, diaSelecionadoAtual, { manterEvento: true });
+                            if (diaSelecionadoAtual) {
+                                const card = document.querySelector(`[data-dia="${diaSelecionadoAtual}"]`);
+                                if (card) window.selecionarDia(card, diaSelecionadoAtual, { manterEvento: true });
+                            }
+                        },
+                        (error) => {
+                            console.error('Erro ao carregar eventos:', error);
+                            mostrarErroCarregamento('Não foi possível carregar os dados do calendário. Confira as regras do Firestore para o caminho /artifacts/plan-maioamarelo/public/data/events/{dia}.');
                         }
-                    });
+                    );
                 }
             });
         }
@@ -600,7 +623,6 @@
             if (!diaSelecionadoAtual) return;
             document.getElementById('novo-no-dia-data').innerText = `${diaSelecionadoAtual} de Maio de 2026`;
             document.getElementById('novo-no-dia-titulo').value = '';
-            document.getElementById('novo-no-dia-descricao').value = '';
             document.getElementById('modal-novo-no-dia').classList.remove('hidden');
         };
         window.fecharModalNovoEventoNoDia = () => document.getElementById('modal-novo-no-dia').classList.add('hidden');
