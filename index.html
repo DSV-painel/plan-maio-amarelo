@@ -89,7 +89,10 @@
                 <div class="flex items-center gap-2">
                     <p class="text-xs text-azul-medio font-bold tracking-widest ml-1">2026</p>
                     <span id="status-cloud" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-200 hidden">
-                        <i class="fa-solid fa-users"></i> Modo Compartilhado
+                        <i class="fa-solid fa-cloud"></i> Dados em nuvem
+                    </span>
+                    <span id="status-auth" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold border border-amber-200 hidden">
+                        <i class="fa-solid fa-lock"></i> Leitura pública
                     </span>
                 </div>
             </div>
@@ -107,6 +110,7 @@
         <div class="text-center mb-8">
             <h2 class="text-4xl font-extrabold text-detran">Maio</h2>
             <p class="text-lg text-azul-medio font-medium tracking-widest">2026</p>
+            <p id="status-msg" class="mt-2 text-xs text-gray-500">Conectando à base do Firebase...</p>
         </div>
 
         <div class="grid grid-cols-7 text-center mb-4 border-b pb-2">
@@ -286,10 +290,15 @@
         let diaSelecionadoAtual = null;
         let eventoSelecionadoId = null;
         let linksTemp = [];
+        let authReady = false;
+        let unsubscribeSnapshot = null;
 
         const gridCalendario = document.getElementById('grid-calendario');
         const painelDetalhes = document.getElementById('painel-detalhes');
         const loadingCalendario = document.getElementById('loading-calendario');
+        const statusCloud = document.getElementById('status-cloud');
+        const statusAuth = document.getElementById('status-auth');
+        const statusMsg = document.getElementById('status-msg');
 
         const PUBLIC_PATH = ['artifacts', 'plan-maioamarelo', 'public', 'data', 'events'];
 
@@ -318,28 +327,71 @@
             return { eventos: [legacy] };
         }
 
-        async function init() {
-            await signInAnonymously(auth);
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    document.getElementById('status-cloud').classList.remove('hidden');
-                    const eventsRef = collection(db, ...PUBLIC_PATH);
-                    onSnapshot(eventsRef, (snapshot) => {
-                        eventosData = {};
-                        snapshot.forEach(docSnap => {
-                            const dia = parseInt(docSnap.id);
-                            eventosData[dia] = normalizarDocDia(dia, docSnap.data());
-                        });
-                        loadingCalendario.classList.add('hidden');
-                        renderizarCalendario();
+        function atualizarStatus(texto, tipo = 'info') {
+            statusMsg.textContent = texto;
+            statusMsg.className = 'mt-2 text-xs';
+            if (tipo === 'ok') statusMsg.classList.add('text-green-700');
+            else if (tipo === 'warn') statusMsg.classList.add('text-amber-700');
+            else if (tipo === 'error') statusMsg.classList.add('text-red-600');
+            else statusMsg.classList.add('text-gray-500');
+        }
 
-                        if (diaSelecionadoAtual) {
-                            const card = document.querySelector(`[data-dia="${diaSelecionadoAtual}"]`);
-                            if (card) window.selecionarDia(card, diaSelecionadoAtual, { manterEvento: true });
-                        }
-                    });
+        function iniciarEscutaFirestore() {
+            if (unsubscribeSnapshot) return;
+            const eventsRef = collection(db, ...PUBLIC_PATH);
+            unsubscribeSnapshot = onSnapshot(eventsRef, (snapshot) => {
+                eventosData = {};
+                snapshot.forEach(docSnap => {
+                    const dia = parseInt(docSnap.id, 10);
+                    if (!Number.isNaN(dia)) {
+                        eventosData[dia] = normalizarDocDia(dia, docSnap.data());
+                    }
+                });
+                loadingCalendario.classList.add('hidden');
+                statusCloud.classList.remove('hidden');
+                atualizarStatus(`Base carregada da nuvem. ${snapshot.size} dia(s) com registros.`, 'ok');
+                renderizarCalendario();
+
+                if (diaSelecionadoAtual) {
+                    const card = document.querySelector(`[data-dia="${diaSelecionadoAtual}"]`);
+                    if (card) window.selecionarDia(card, diaSelecionadoAtual, { manterEvento: true });
+                }
+            }, (error) => {
+                console.error('Erro no onSnapshot:', error);
+                loadingCalendario.classList.add('hidden');
+                atualizarStatus(`Erro ao ler a base em nuvem: ${error.code || 'erro-desconhecido'}.`, 'error');
+            });
+        }
+
+        async function init() {
+            renderizarCalendario();
+            iniciarEscutaFirestore();
+
+            onAuthStateChanged(auth, (user) => {
+                authReady = !!user;
+                if (user) {
+                    statusAuth.classList.remove('hidden');
+                    statusAuth.className = 'text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold border border-green-200';
+                    statusAuth.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edição liberada';
                 }
             });
+
+            try {
+                const cred = await signInAnonymously(auth);
+                authReady = !!cred?.user;
+                if (authReady) {
+                    statusAuth.classList.remove('hidden');
+                    statusAuth.className = 'text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold border border-green-200';
+                    statusAuth.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edição liberada';
+                }
+            } catch (error) {
+                console.warn('Falha no signInAnonymously:', error);
+                authReady = false;
+                statusAuth.classList.remove('hidden');
+                statusAuth.className = 'text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold border border-amber-200';
+                statusAuth.innerHTML = '<i class="fa-solid fa-lock"></i> Leitura pública';
+                atualizarStatus('Base conectada. Para editar, habilite Anonymous em Authentication no Firebase.', 'warn');
+            }
         }
 
         function criarEvtButton(dia, card, evento, selected) {
@@ -491,8 +543,16 @@
             `).join('') || '<p class="text-xs text-gray-400 italic">Nenhum documento.</p>';
         }
 
+        function exigirAutenticacaoParaEdicao() {
+            if (authReady && auth.currentUser) return true;
+            alert('Os dados foram carregados da nuvem, mas a edição exige autenticação anônima ativa no Firebase. Habilite Authentication > Anonymous no projeto plan-maioamarelo.');
+            return false;
+        }
+
         async function salvarDiaNoFirestore(dia, eventos) {
+            if (!exigirAutenticacaoParaEdicao()) return false;
             await setDoc(doc(db, ...PUBLIC_PATH, dia.toString()), { eventos });
+            return true;
         }
 
         window.salvarAlteracoes = async () => {
@@ -501,29 +561,36 @@
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Salvando...";
 
-            const eventos = (eventosData[diaSelecionadoAtual]?.eventos || []);
-            const idx = eventos.findIndex(e => e.id === eventoSelecionadoId);
-            if (idx === -1) { btn.innerText = "Salvar Alterações"; return; }
+            try {
+                const eventos = (eventosData[diaSelecionadoAtual]?.eventos || []);
+                const idx = eventos.findIndex(e => e.id === eventoSelecionadoId);
+                if (idx === -1) { btn.innerText = "Salvar Alterações"; return; }
 
-            eventos[idx] = {
-                ...eventos[idx],
-                titulo: document.getElementById('detalhe-titulo').value,
-                tipo: document.getElementById('detalhe-subtitulo').value,
-                horario: document.getElementById('meta-horario').value,
-                local: document.getElementById('meta-local').value,
-                responsavel: document.getElementById('meta-responsavel').value,
-                publico: document.getElementById('meta-publico').value,
-                objetivo: document.getElementById('texto-objetivo').value,
-                visaoGeral: document.getElementById('texto-visao').value,
-                detalhamento: document.getElementById('texto-detalhamento').value,
-                apoioPresidencia: document.getElementById('texto-apoio').value,
-                links: linksTemp
-            };
+                eventos[idx] = {
+                    ...eventos[idx],
+                    titulo: document.getElementById('detalhe-titulo').value,
+                    tipo: document.getElementById('detalhe-subtitulo').value,
+                    horario: document.getElementById('meta-horario').value,
+                    local: document.getElementById('meta-local').value,
+                    responsavel: document.getElementById('meta-responsavel').value,
+                    publico: document.getElementById('meta-publico').value,
+                    objetivo: document.getElementById('texto-objetivo').value,
+                    visaoGeral: document.getElementById('texto-visao').value,
+                    detalhamento: document.getElementById('texto-detalhamento').value,
+                    apoioPresidencia: document.getElementById('texto-apoio').value,
+                    links: linksTemp
+                };
 
-            await salvarDiaNoFirestore(diaSelecionadoAtual, eventos);
-
-            btn.innerText = "Salvo!";
-            setTimeout(() => btn.innerText = "Salvar Alterações", 2000);
+                const ok = await salvarDiaNoFirestore(diaSelecionadoAtual, eventos);
+                if (!ok) { btn.innerText = "Salvar Alterações"; return; }
+                btn.innerText = "Salvo!";
+                setTimeout(() => btn.innerText = "Salvar Alterações", 2000);
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                btn.innerText = "Erro ao salvar";
+                alert(`Não foi possível salvar: ${error.code || error.message || 'erro desconhecido'}`);
+                setTimeout(() => btn.innerText = "Salvar Alterações", 2500);
+            }
         };
 
         window.excluirEvento = () => {
@@ -540,102 +607,118 @@
         };
 
         window.executarExclusao = async () => {
-            const eventos = (eventosData[diaSelecionadoAtual]?.eventos || []);
-            const novos = eventos.filter(e => e.id !== eventoSelecionadoId);
+            if (!exigirAutenticacaoParaEdicao()) return;
+            try {
+                const eventos = (eventosData[diaSelecionadoAtual]?.eventos || []);
+                const novos = eventos.filter(e => e.id !== eventoSelecionadoId);
 
-            if (novos.length === 0) {
-                await deleteDoc(doc(db, ...PUBLIC_PATH, diaSelecionadoAtual.toString()));
-                painelDetalhes.classList.add('hidden');
-                eventoSelecionadoId = null;
-            } else {
-                await salvarDiaNoFirestore(diaSelecionadoAtual, novos);
-                eventoSelecionadoId = novos[0].id;
-                // mantém o painel aberto no primeiro evento remanescente
-                carregarEventoNoForm(novos[0]);
-                setEventosCount(novos.length);
+                if (novos.length === 0) {
+                    await deleteDoc(doc(db, ...PUBLIC_PATH, diaSelecionadoAtual.toString()));
+                    painelDetalhes.classList.add('hidden');
+                    eventoSelecionadoId = null;
+                } else {
+                    const ok = await salvarDiaNoFirestore(diaSelecionadoAtual, novos);
+                    if (!ok) return;
+                    eventoSelecionadoId = novos[0].id;
+                    carregarEventoNoForm(novos[0]);
+                    setEventosCount(novos.length);
+                }
+
+                window.fecharModalExclusao();
+                renderizarCalendario();
+            } catch (error) {
+                console.error('Erro ao excluir:', error);
+                alert(`Não foi possível excluir: ${error.code || error.message || 'erro desconhecido'}`);
             }
-
-            window.fecharModalExclusao();
-            renderizarCalendario();
         };
 
         window.confirmarNovoEvento = async () => {
-            const dia = parseInt(document.getElementById('novo-dia').value);
+            if (!exigirAutenticacaoParaEdicao()) return;
+            const dia = parseInt(document.getElementById('novo-dia').value, 10);
             const titulo = document.getElementById('novo-titulo').value?.trim();
             const desc = "";
             if (!titulo) return;
 
-            const ref = doc(db, ...PUBLIC_PATH, dia.toString());
-            const snap = await getDoc(ref);
-            const atual = snap.exists() ? normalizarDocDia(dia, snap.data()).eventos : [];
+            try {
+                const ref = doc(db, ...PUBLIC_PATH, dia.toString());
+                const snap = await getDoc(ref);
+                const atual = snap.exists() ? normalizarDocDia(dia, snap.data()).eventos : [];
 
-            const novoEvento = {
-                id: genId(),
-                titulo,
-                tipo: "Geral",
-                horario: "",
-                local: "",
-                responsavel: "",
-                publico: "",
-                objetivo: "",
-                visaoGeral: desc,
-                detalhamento: "",
-                apoioPresidencia: "",
-                links: []
-            };
+                const novoEvento = {
+                    id: genId(),
+                    titulo,
+                    tipo: "Geral",
+                    horario: "",
+                    local: "",
+                    responsavel: "",
+                    publico: "",
+                    objetivo: "",
+                    visaoGeral: desc,
+                    detalhamento: "",
+                    apoioPresidencia: "",
+                    links: []
+                };
 
-            atual.push(novoEvento);
-            await salvarDiaNoFirestore(dia, atual);
+                atual.push(novoEvento);
+                const ok = await salvarDiaNoFirestore(dia, atual);
+                if (!ok) return;
 
-            window.fecharModalNovoEvento();
+                window.fecharModalNovoEvento();
+                diaSelecionadoAtual = dia;
+                eventoSelecionadoId = novoEvento.id;
 
-            diaSelecionadoAtual = dia;
-            eventoSelecionadoId = novoEvento.id;
-
-            const card = document.querySelector(`[data-dia="${dia}"]`);
-            if (card) window.selecionarDia(card, dia, { eventoId: novoEvento.id });
+                const card = document.querySelector(`[data-dia="${dia}"]`);
+                if (card) window.selecionarDia(card, dia, { eventoId: novoEvento.id });
+            } catch (error) {
+                console.error('Erro ao criar novo evento:', error);
+                alert(`Não foi possível criar o evento: ${error.code || error.message || 'erro desconhecido'}`);
+            }
         };
 
         window.abrirModalNovoEventoNoDia = () => {
             if (!diaSelecionadoAtual) return;
             document.getElementById('novo-no-dia-data').innerText = `${diaSelecionadoAtual} de Maio de 2026`;
             document.getElementById('novo-no-dia-titulo').value = '';
-            document.getElementById('novo-no-dia-descricao').value = '';
             document.getElementById('modal-novo-no-dia').classList.remove('hidden');
         };
         window.fecharModalNovoEventoNoDia = () => document.getElementById('modal-novo-no-dia').classList.add('hidden');
 
         window.confirmarNovoEventoNoDia = async () => {
-            if (!diaSelecionadoAtual) return;
+            if (!diaSelecionadoAtual || !exigirAutenticacaoParaEdicao()) return;
             const titulo = document.getElementById('novo-no-dia-titulo').value?.trim();
             const desc = "";
             if (!titulo) return;
 
-            const eventos = (eventosData[diaSelecionadoAtual]?.eventos || []);
-            const novoEvento = {
-                id: genId(),
-                titulo,
-                tipo: "Geral",
-                horario: "",
-                local: "",
-                responsavel: "",
-                publico: "",
-                objetivo: "",
-                visaoGeral: desc,
-                detalhamento: "",
-                apoioPresidencia: "",
-                links: []
-            };
+            try {
+                const eventos = [...(eventosData[diaSelecionadoAtual]?.eventos || [])];
+                const novoEvento = {
+                    id: genId(),
+                    titulo,
+                    tipo: "Geral",
+                    horario: "",
+                    local: "",
+                    responsavel: "",
+                    publico: "",
+                    objetivo: "",
+                    visaoGeral: desc,
+                    detalhamento: "",
+                    apoioPresidencia: "",
+                    links: []
+                };
 
-            eventos.push(novoEvento);
-            await salvarDiaNoFirestore(diaSelecionadoAtual, eventos);
+                eventos.push(novoEvento);
+                const ok = await salvarDiaNoFirestore(diaSelecionadoAtual, eventos);
+                if (!ok) return;
 
-            eventoSelecionadoId = novoEvento.id;
-            window.fecharModalNovoEventoNoDia();
+                eventoSelecionadoId = novoEvento.id;
+                window.fecharModalNovoEventoNoDia();
 
-            // abre/atualiza o painel já no novo evento
-            const card = document.querySelector(`[data-dia="${diaSelecionadoAtual}"]`);
-            if (card) window.selecionarDia(card, diaSelecionadoAtual, { eventoId: novoEvento.id });
+                const card = document.querySelector(`[data-dia="${diaSelecionadoAtual}"]`);
+                if (card) window.selecionarDia(card, diaSelecionadoAtual, { eventoId: novoEvento.id });
+            } catch (error) {
+                console.error('Erro ao adicionar evento no dia:', error);
+                alert(`Não foi possível adicionar o evento: ${error.code || error.message || 'erro desconhecido'}`);
+            }
         };
 
         // Helpers de modal
