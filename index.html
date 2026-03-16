@@ -187,6 +187,11 @@
                 </div>
 
                 <div class="bg-white rounded-lg border p-4">
+                    <h4 class="text-detran font-bold text-sm mb-3">Equipe Responsável pela Execução</h4>
+                    <textarea id="texto-equipe" class="w-full text-sm text-gray-600 resize-none h-[80px] focus:outline-none" placeholder="Liste as pessoas responsáveis por executar o evento (ex: João – logística | Maria – articulação | Pedro – comunicação)"></textarea>
+                </div>
+
+                <div class="bg-white rounded-lg border p-4">
                     <h4 class="text-detran font-bold text-sm mb-3">Detalhamento do Evento</h4>
                     <textarea id="texto-detalhamento" class="w-full text-sm text-gray-600 resize-none h-[140px] focus:outline-none" placeholder="Descreva o formato, dinâmica, pauta, atrações, logística, itens necessários..."></textarea>
                 </div>
@@ -318,6 +323,7 @@
                 local: raw.local || "",
                 responsavel: raw.responsavel || "",
                 publico: raw.publico || "",
+                equipe: raw.equipe || "",
                 objetivo: raw.objetivo || "",
                 visaoGeral: raw.visaoGeral || "",
                 detalhamento: raw.detalhamento || "",
@@ -472,6 +478,7 @@
 
             document.getElementById('texto-objetivo').value = e.objetivo || "";
             document.getElementById('texto-visao').value = e.visaoGeral || "";
+            document.getElementById('texto-equipe').value = e.equipe || "";
             document.getElementById('texto-detalhamento').value = e.detalhamento || "";
             document.getElementById('texto-apoio').value = e.apoioPresidencia || "";
 
@@ -489,6 +496,7 @@
 
             document.getElementById('texto-objetivo').value = "";
             document.getElementById('texto-visao').value = "";
+            document.getElementById('texto-equipe').value = "";
             document.getElementById('texto-detalhamento').value = "";
             document.getElementById('texto-apoio').value = "";
 
@@ -576,6 +584,7 @@
                     publico: document.getElementById('meta-publico').value,
                     objetivo: document.getElementById('texto-objetivo').value,
                     visaoGeral: document.getElementById('texto-visao').value,
+                    equipe: document.getElementById('texto-equipe').value,
                     detalhamento: document.getElementById('texto-detalhamento').value,
                     apoioPresidencia: document.getElementById('texto-apoio').value,
                     links: linksTemp
@@ -652,6 +661,7 @@
                     local: "",
                     responsavel: "",
                     publico: "",
+                    equipe: "",
                     objetivo: "",
                     visaoGeral: desc,
                     detalhamento: "",
@@ -699,6 +709,7 @@
                     local: "",
                     responsavel: "",
                     publico: "",
+                    equipe: "",
                     objetivo: "",
                     visaoGeral: desc,
                     detalhamento: "",
