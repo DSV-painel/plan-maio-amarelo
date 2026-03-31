@@ -39,7 +39,6 @@
         .dia-card:focus-within { outline: 2px solid #005ca8; outline-offset: 2px; }
         .input-editavel:focus, .meta-input:focus, textarea:focus, select:focus { outline: 2px solid #005ca8; outline-offset: 2px; }
 
-        /* Botões/eventos dentro do dia */
         .evt-btn {
             display: block;
             width: 100%;
@@ -55,6 +54,112 @@
         }
         .evt-btn:hover { filter: brightness(0.98); }
         .evt-btn.selected { outline: 2px solid #005ca8; outline-offset: 1px; background: #FFFCAD; }
+
+        /* ─── Cronograma ─── */
+        .cronograma-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+
+        .cronograma-table thead th {
+            background: var(--cor-detran);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 9px 12px;
+            border: none;
+        }
+        .cronograma-table thead th:first-child { border-radius: 8px 0 0 0; }
+        .cronograma-table thead th:last-child  { border-radius: 0 8px 0 0; }
+
+        .cronograma-table tbody tr { transition: background 0.15s; }
+        .cronograma-table tbody tr:nth-child(even) { background: #f8fafc; }
+        .cronograma-table tbody tr:nth-child(odd)  { background: #ffffff; }
+        .cronograma-table tbody tr:hover { background: #eef5fb; }
+
+        .cronograma-table tbody td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #e8edf2;
+            vertical-align: middle;
+        }
+
+        .crono-input {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            padding: 5px 7px;
+            font-size: 13px;
+            width: 100%;
+            color: #1e293b;
+            font-family: 'Open Sans', sans-serif;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .crono-input:focus {
+            outline: none;
+            border-color: var(--cor-azul-medio);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(0,92,168,0.1);
+        }
+        .crono-input.horario {
+            width: 90px;
+            font-weight: 700;
+            color: var(--cor-detran);
+            letter-spacing: 0.04em;
+            text-align: center;
+        }
+
+        .crono-btn-remove {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: color 0.15s, background 0.15s;
+            line-height: 1;
+        }
+        .crono-btn-remove:hover { color: #ef4444; background: #fef2f2; }
+
+        .crono-btn-add {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: 2px dashed #cbd5e1;
+            color: var(--cor-azul-medio);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 0 0 8px 8px;
+            width: 100%;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+            letter-spacing: 0.03em;
+        }
+        .crono-btn-add:hover {
+            border-color: var(--cor-azul-medio);
+            background: #f0f7ff;
+            color: var(--cor-detran);
+        }
+
+        .crono-empty {
+            text-align: center;
+            padding: 28px 0;
+            color: #94a3b8;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        .crono-drag-handle {
+            cursor: grab;
+            color: #cbd5e1;
+            font-size: 14px;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+        .crono-drag-handle:hover { color: #64748b; }
+        tr.dragging { opacity: 0.4; }
+        tr.drag-over { box-shadow: inset 0 2px 0 var(--cor-azul-medio); }
     </style>
 </head>
 
@@ -64,7 +169,7 @@
         <div class="bg-[#FFFCAD] border-b border-yellow-300 text-[#004077] text-xs md:text-sm font-bold tracking-wide py-2 px-4 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-ribbon text-yellow-600"></i>
-                <span>Campanha Maio Amarelo 2026 • “No trânsito, enxergar o outro é salvar vidas”</span>
+                <span>Campanha Maio Amarelo 2026 • "No trânsito, enxergar o outro é salvar vidas"</span>
             </div>
         </div>
     </div>
@@ -102,6 +207,43 @@
         </button>
     </header>
 
+    <!-- Box de escopo da campanha -->
+    <div class="bg-white rounded-xl shadow-sm border border-yellow-200 mb-6 overflow-hidden">
+        <div class="bg-[#FFFCAD] px-5 py-3 flex items-center gap-2 border-b border-yellow-300">
+            <i class="fa-solid fa-circle-info text-[#004077] text-base"></i>
+            <span class="text-[#004077] font-bold text-sm uppercase tracking-wide">Escopo da Campanha — Maio Amarelo 2026</span>
+        </div>
+        <div class="px-5 py-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="flex gap-3 items-start">
+                <div class="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-[#004077] text-white flex items-center justify-center font-bold text-xs">1</div>
+                <div>
+                    <p class="text-xs font-bold text-[#004077] uppercase tracking-wide mb-0.5">Capital</p>
+                    <p class="text-sm text-slate-600 leading-snug">Calendário de eventos na Capital</p>
+                </div>
+            </div>
+            <div class="flex gap-3 items-start">
+                <div class="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-[#004077] text-white flex items-center justify-center font-bold text-xs">2</div>
+                <div>
+                    <p class="text-xs font-bold text-[#004077] uppercase tracking-wide mb-0.5">Territórios</p>
+                    <p class="text-sm text-slate-600 leading-snug">Ações nos territórios orientadas pela DSV, integrando ações de educação e blitze educativa</p>
+                </div>
+            </div>
+            <div class="flex gap-3 items-start">
+                <div class="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-[#004077] text-white flex items-center justify-center font-bold text-xs">3</div>
+                <div>
+                    <p class="text-xs font-bold text-[#004077] uppercase tracking-wide mb-0.5">Redes Sociais</p>
+                    <p class="text-sm text-slate-600 leading-snug">Campanha em redes sociais <span class="italic text-slate-400">(a definir pela ASCOM)</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="px-5 py-3 bg-amber-50 border-t border-yellow-200 flex gap-2 items-start">
+            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm mt-0.5 shrink-0"></i>
+            <p class="text-xs text-amber-800 leading-relaxed">
+                <span class="font-bold">Observação:</span> Ações em planejamento, considerando a definição das estratégias finais alinhadas às orientações relacionadas ao <span class="font-semibold">defeso eleitoral</span>.
+            </p>
+        </div>
+    </div>
+
     <main class="bg-white rounded-xl shadow-md p-6 mb-8 border-t relative">
         <div id="loading-calendario" class="loading-overlay rounded-xl">
             <div class="animate-spin text-detran text-3xl"><i class="fa-solid fa-circle-notch"></i></div>
@@ -136,8 +278,6 @@
                 <div class="flex items-center gap-2 text-yellow-300 text-xs font-bold uppercase mb-1 opacity-80">
                     <i class="fa-regular fa-calendar"></i> <span id="data-display"></span>
                 </div>
-
-                <!-- Sem dropdown: só contador e botão de adicionar -->
                 <div class="flex flex-wrap items-center gap-2 mb-2">
                     <span class="text-xs uppercase tracking-widest text-azul-claro font-bold">
                         Eventos no dia: <span id="eventos-count" class="text-white">0</span>
@@ -146,7 +286,6 @@
                         <i class="fa-solid fa-plus mr-1"></i> Adicionar evento neste dia
                     </button>
                 </div>
-
                 <input type="text" id="detalhe-titulo" class="input-editavel text-2xl font-bold text-white mb-1" value="">
                 <div class="flex items-center gap-2 mt-1">
                     <span class="text-xs text-azul-claro font-bold uppercase">Categoria:</span>
@@ -191,10 +330,38 @@
                     <textarea id="texto-equipe" class="w-full text-sm text-gray-600 resize-none h-[80px] focus:outline-none" placeholder="Liste as pessoas responsáveis por executar o evento"></textarea>
                 </div>
 
-                <div class="bg-white rounded-lg border p-4">
-                    <h4 class="text-detran font-bold text-sm mb-3">Detalhamento do Evento</h4>
-                    <textarea id="texto-detalhamento" class="w-full text-sm text-gray-600 resize-none h-[140px] focus:outline-none" placeholder="Descreva o formato, dinâmica, pauta, atrações, logística, itens necessários..."></textarea>
+                <!-- ─── CRONOGRAMA (substitui Detalhamento) ─── -->
+                <div class="bg-white rounded-lg border overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-regular fa-clock text-[var(--cor-detran)] text-sm"></i>
+                            <h4 class="text-detran font-bold text-sm">Cronograma do Evento</h4>
+                        </div>
+                        <span id="crono-count-badge" class="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full hidden"></span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="cronograma-table" id="crono-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:32px"></th><!-- drag handle -->
+                                    <th style="width:105px">Horário</th>
+                                    <th>Atividade / Descrição</th>
+                                    <th style="width:170px">Responsável</th>
+                                    <th style="width:40px"></th><!-- remove -->
+                                </tr>
+                            </thead>
+                            <tbody id="crono-tbody">
+                                <!-- linhas geradas por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button type="button" class="crono-btn-add" onclick="window.cronoAdicionarLinha()">
+                        <i class="fa-solid fa-plus"></i> Adicionar linha
+                    </button>
                 </div>
+                <!-- ─── fim Cronograma ─── -->
 
                 <div class="bg-white rounded-lg border p-4">
                     <h4 class="text-detran font-bold text-sm mb-3">Encaminhamentos</h4>
@@ -235,7 +402,6 @@
             <div class="p-6 space-y-4">
                 <input type="text" id="novo-titulo" class="w-full border rounded-lg p-2.5" placeholder="Título do Evento">
                 <select id="novo-dia" class="w-full border rounded-lg p-2.5 bg-white"></select>
-                
             </div>
             <div class="bg-gray-50 p-4 flex justify-end gap-3">
                 <button onclick="window.fecharModalNovoEvento()" class="px-4 py-2 text-sm">Cancelar</button>
@@ -250,7 +416,6 @@
             <div class="p-6 space-y-4">
                 <div class="text-xs text-gray-500">Dia selecionado: <span id="novo-no-dia-data" class="font-bold text-detran"></span></div>
                 <input type="text" id="novo-no-dia-titulo" class="w-full border rounded-lg p-2.5" placeholder="Título do Evento">
-                
             </div>
             <div class="bg-gray-50 p-4 flex justify-end gap-3">
                 <button onclick="window.fecharModalNovoEventoNoDia()" class="px-4 py-2 text-sm">Cancelar</button>
@@ -269,6 +434,13 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Precisa estar fora do module para o onerror do <img> conseguir chamar
+        window.handleLogoError = function(imgEl) {
+            try { imgEl.style.display = 'none'; document.getElementById('logo-text')?.classList.remove('hidden'); } catch(e) {}
+        };
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -291,28 +463,37 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let eventosData = {}; // { [dia:number]: { eventos: [...] } }
+        let eventosData = {};
         let diaSelecionadoAtual = null;
         let eventoSelecionadoId = null;
         let linksTemp = [];
         let authReady = false;
         let unsubscribeSnapshot = null;
 
-        const gridCalendario = document.getElementById('grid-calendario');
-        const painelDetalhes = document.getElementById('painel-detalhes');
+        // ─── Estado do cronograma ───
+        // Array de { id, horario, atividade, responsavel }
+        let cronoLinhas = [];
+        const cronoGenId = () => `cr-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`;
+
+        const gridCalendario    = document.getElementById('grid-calendario');
+        const painelDetalhes    = document.getElementById('painel-detalhes');
         const loadingCalendario = document.getElementById('loading-calendario');
-        const statusCloud = document.getElementById('status-cloud');
-        const statusAuth = document.getElementById('status-auth');
-        const statusMsg = document.getElementById('status-msg');
+        const statusCloud       = document.getElementById('status-cloud');
+        const statusAuth        = document.getElementById('status-auth');
+        const statusMsg         = document.getElementById('status-msg');
 
         const PUBLIC_PATH = ['artifacts', 'plan-maioamarelo', 'public', 'data', 'events'];
-
         const genId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
         function normalizarDocDia(dia, raw) {
             if (!raw) return { eventos: [] };
             if (Array.isArray(raw.eventos)) {
-                const eventos = raw.eventos.map(e => ({ ...e, id: e.id || genId(), links: Array.isArray(e.links) ? e.links : [] }));
+                const eventos = raw.eventos.map(e => ({
+                    ...e,
+                    id: e.id || genId(),
+                    links: Array.isArray(e.links) ? e.links : [],
+                    cronograma: Array.isArray(e.cronograma) ? e.cronograma : []
+                }));
                 return { eventos };
             }
             const legacy = {
@@ -328,7 +509,8 @@
                 visaoGeral: raw.visaoGeral || "",
                 detalhamento: raw.detalhamento || "",
                 apoioPresidencia: raw.apoioPresidencia || "",
-                links: Array.isArray(raw.links) ? raw.links : []
+                links: Array.isArray(raw.links) ? raw.links : [],
+                cronograma: []
             };
             return { eventos: [legacy] };
         }
@@ -336,8 +518,8 @@
         function atualizarStatus(texto, tipo = 'info') {
             statusMsg.textContent = texto;
             statusMsg.className = 'mt-2 text-xs';
-            if (tipo === 'ok') statusMsg.classList.add('text-green-700');
-            else if (tipo === 'warn') statusMsg.classList.add('text-amber-700');
+            if (tipo === 'ok')    statusMsg.classList.add('text-green-700');
+            else if (tipo === 'warn')  statusMsg.classList.add('text-amber-700');
             else if (tipo === 'error') statusMsg.classList.add('text-red-600');
             else statusMsg.classList.add('text-gray-500');
         }
@@ -400,18 +582,164 @@
             }
         }
 
+        /* ════════════════════════════════════════
+           CRONOGRAMA – funções de UI
+        ════════════════════════════════════════ */
+
+        function cronoRenderizar() {
+            const tbody = document.getElementById('crono-tbody');
+            const badge = document.getElementById('crono-count-badge');
+            tbody.innerHTML = '';
+
+            if (cronoLinhas.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="5" class="crono-empty">
+                    <i class="fa-regular fa-calendar-xmark text-2xl block mb-2 opacity-30"></i>
+                    Nenhuma atividade cadastrada. Clique em "Adicionar linha" para começar.
+                </td>`;
+                tbody.appendChild(tr);
+                badge.classList.add('hidden');
+                return;
+            }
+
+            badge.textContent = `${cronoLinhas.length} atividade${cronoLinhas.length > 1 ? 's' : ''}`;
+            badge.classList.remove('hidden');
+
+            cronoLinhas.forEach((linha, idx) => {
+                const tr = document.createElement('tr');
+                tr.dataset.id = linha.id;
+                tr.draggable = true;
+
+                tr.innerHTML = `
+                    <td>
+                        <span class="crono-drag-handle" title="Arrastar para reordenar">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                        </span>
+                    </td>
+                    <td>
+                        <input
+                            type="text"
+                            class="crono-input horario"
+                            placeholder="09:00"
+                            value="${escapeAttr(linha.horario)}"
+                            data-field="horario"
+                            data-id="${linha.id}"
+                        >
+                    </td>
+                    <td>
+                        <input
+                            type="text"
+                            class="crono-input"
+                            placeholder="Descreva a atividade..."
+                            value="${escapeAttr(linha.atividade)}"
+                            data-field="atividade"
+                            data-id="${linha.id}"
+                        >
+                    </td>
+                    <td>
+                        <input
+                            type="text"
+                            class="crono-input"
+                            placeholder="Nome do responsável"
+                            value="${escapeAttr(linha.responsavel)}"
+                            data-field="responsavel"
+                            data-id="${linha.id}"
+                        >
+                    </td>
+                    <td>
+                        <button
+                            type="button"
+                            class="crono-btn-remove"
+                            title="Remover linha"
+                            data-remove="${linha.id}"
+                        >
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+
+            // Eventos de input — atualiza estado sem re-renderizar
+            tbody.querySelectorAll('.crono-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const id    = e.target.dataset.id;
+                    const field = e.target.dataset.field;
+                    const l = cronoLinhas.find(x => x.id === id);
+                    if (l) l[field] = e.target.value;
+                    // apenas atualiza o badge sem re-renderizar toda a tabela
+                    const badge = document.getElementById('crono-count-badge');
+                    if (badge) badge.textContent = `${cronoLinhas.length} atividade${cronoLinhas.length > 1 ? 's' : ''}`;
+                });
+            });
+
+            // Botões de remover
+            tbody.querySelectorAll('[data-remove]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.dataset.remove;
+                    cronoLinhas = cronoLinhas.filter(x => x.id !== id);
+                    cronoRenderizar();
+                });
+            });
+
+            // Drag & drop para reordenar
+            let dragSrcId = null;
+            tbody.querySelectorAll('tr[draggable]').forEach(tr => {
+                tr.addEventListener('dragstart', () => {
+                    dragSrcId = tr.dataset.id;
+                    tr.classList.add('dragging');
+                });
+                tr.addEventListener('dragend', () => {
+                    tr.classList.remove('dragging');
+                    tbody.querySelectorAll('tr').forEach(r => r.classList.remove('drag-over'));
+                });
+                tr.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    tbody.querySelectorAll('tr').forEach(r => r.classList.remove('drag-over'));
+                    tr.classList.add('drag-over');
+                });
+                tr.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (dragSrcId && dragSrcId !== tr.dataset.id) {
+                        const srcIdx = cronoLinhas.findIndex(x => x.id === dragSrcId);
+                        const tgtIdx = cronoLinhas.findIndex(x => x.id === tr.dataset.id);
+                        if (srcIdx > -1 && tgtIdx > -1) {
+                            const [moved] = cronoLinhas.splice(srcIdx, 1);
+                            cronoLinhas.splice(tgtIdx, 0, moved);
+                            cronoRenderizar();
+                        }
+                    }
+                });
+            });
+        }
+
+        window.cronoAdicionarLinha = () => {
+            cronoLinhas.push({ id: cronoGenId(), horario: '', atividade: '', responsavel: '' });
+            cronoRenderizar();
+            // foca no último campo de horário
+            const inputs = document.querySelectorAll('#crono-tbody .crono-input.horario');
+            if (inputs.length) inputs[inputs.length - 1].focus();
+        };
+
+        function escapeAttr(str) {
+            return (str || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        }
+
+        /* ════════════════════════════════════════
+           CALENDÁRIO
+        ════════════════════════════════════════ */
+
         function criarEvtButton(dia, card, evento, selected) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = `evt-btn ${selected ? 'selected' : ''}`;
             btn.title = evento.titulo || 'Evento';
             btn.textContent = evento.titulo || 'Evento';
-
             btn.addEventListener('click', (ev) => {
                 ev.stopPropagation();
                 window.selecionarDia(card, dia, { eventoId: evento.id });
             });
-
             return btn;
         }
 
@@ -433,7 +761,6 @@
                 const list = document.createElement('div');
                 list.className = 'mt-2 space-y-1';
 
-                // mostra até 4 eventos; se tiver mais, mostra "+N mais"
                 const MAX = 4;
                 eventos.slice(0, MAX).forEach((e) => {
                     const isSelected = (dia === diaSelecionadoAtual && e.id === eventoSelecionadoId);
@@ -469,44 +796,46 @@
         }
 
         function carregarEventoNoForm(e) {
-            document.getElementById('detalhe-titulo').value = e.titulo || "Novo Planejamento";
-            document.getElementById('detalhe-subtitulo').value = e.tipo || "Geral";
-            document.getElementById('meta-horario').value = e.horario || "";
-            document.getElementById('meta-local').value = e.local || "";
-            document.getElementById('meta-responsavel').value = e.responsavel || "";
-            document.getElementById('meta-publico').value = e.publico || "";
+            document.getElementById('detalhe-titulo').value    = e.titulo || "Novo Planejamento";
+            document.getElementById('detalhe-subtitulo').value = e.tipo   || "Geral";
+            document.getElementById('meta-horario').value      = e.horario    || "";
+            document.getElementById('meta-local').value        = e.local      || "";
+            document.getElementById('meta-responsavel').value  = e.responsavel|| "";
+            document.getElementById('meta-publico').value      = e.publico    || "";
+            document.getElementById('texto-objetivo').value    = e.objetivo   || "";
+            document.getElementById('texto-visao').value       = e.visaoGeral || "";
+            document.getElementById('texto-equipe').value      = e.equipe     || "";
+            document.getElementById('texto-apoio').value       = e.apoioPresidencia || "";
 
-            document.getElementById('texto-objetivo').value = e.objetivo || "";
-            document.getElementById('texto-visao').value = e.visaoGeral || "";
-            document.getElementById('texto-equipe').value = e.equipe || "";
-            document.getElementById('texto-detalhamento').value = e.detalhamento || "";
-            document.getElementById('texto-apoio').value = e.apoioPresidencia || "";
+            // Carrega cronograma
+            cronoLinhas = Array.isArray(e.cronograma)
+                ? e.cronograma.map(l => ({ id: l.id || cronoGenId(), horario: l.horario || '', atividade: l.atividade || '', responsavel: l.responsavel || '' }))
+                : [];
+            cronoRenderizar();
 
             linksTemp = Array.isArray(e.links) ? e.links : [];
             renderLinks();
         }
 
         function limparForm() {
-            document.getElementById('detalhe-titulo').value = "Novo Planejamento";
+            document.getElementById('detalhe-titulo').value    = "Novo Planejamento";
             document.getElementById('detalhe-subtitulo').value = "Geral";
-            document.getElementById('meta-horario').value = "";
-            document.getElementById('meta-local').value = "";
-            document.getElementById('meta-responsavel').value = "";
-            document.getElementById('meta-publico').value = "";
-
-            document.getElementById('texto-objetivo').value = "";
-            document.getElementById('texto-visao').value = "";
-            document.getElementById('texto-equipe').value = "";
-            document.getElementById('texto-detalhamento').value = "";
-            document.getElementById('texto-apoio').value = "";
-
+            document.getElementById('meta-horario').value      = "";
+            document.getElementById('meta-local').value        = "";
+            document.getElementById('meta-responsavel').value  = "";
+            document.getElementById('meta-publico').value      = "";
+            document.getElementById('texto-objetivo').value    = "";
+            document.getElementById('texto-visao').value       = "";
+            document.getElementById('texto-equipe').value      = "";
+            document.getElementById('texto-apoio').value       = "";
+            cronoLinhas = [];
+            cronoRenderizar();
             linksTemp = [];
             renderLinks();
         }
 
         window.selecionarDia = (card, dia, opts = {}) => {
             diaSelecionadoAtual = dia;
-
             document.querySelectorAll('.dia-card').forEach(c => c.classList.remove('dia-selecionado'));
             if (card?.classList) card.classList.add('dia-selecionado');
 
@@ -516,9 +845,7 @@
             const eventos = (eventosData[dia]?.eventos || []);
             setEventosCount(eventos.length);
 
-            // define evento selecionado
             const requestedId = opts.eventoId || null;
-
             if (requestedId && eventos.some(e => e.id === requestedId)) {
                 eventoSelecionadoId = requestedId;
             } else if (opts.manterEvento && eventoSelecionadoId && eventos.some(e => e.id === eventoSelecionadoId)) {
@@ -535,9 +862,7 @@
                 limparForm();
             }
 
-            // re-renderiza calendário pra refletir destaque no evento selecionado
             renderizarCalendario();
-
             painelDetalhes.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         };
 
@@ -574,19 +899,25 @@
                 const idx = eventos.findIndex(e => e.id === eventoSelecionadoId);
                 if (idx === -1) { btn.innerText = "Salvar Alterações"; return; }
 
+                // Coleta cronograma atual dos inputs (estado já sincronizado via 'input' events)
                 eventos[idx] = {
                     ...eventos[idx],
-                    titulo: document.getElementById('detalhe-titulo').value,
-                    tipo: document.getElementById('detalhe-subtitulo').value,
-                    horario: document.getElementById('meta-horario').value,
-                    local: document.getElementById('meta-local').value,
-                    responsavel: document.getElementById('meta-responsavel').value,
-                    publico: document.getElementById('meta-publico').value,
-                    objetivo: document.getElementById('texto-objetivo').value,
-                    visaoGeral: document.getElementById('texto-visao').value,
-                    equipe: document.getElementById('texto-equipe').value,
-                    detalhamento: document.getElementById('texto-detalhamento').value,
+                    titulo:           document.getElementById('detalhe-titulo').value,
+                    tipo:             document.getElementById('detalhe-subtitulo').value,
+                    horario:          document.getElementById('meta-horario').value,
+                    local:            document.getElementById('meta-local').value,
+                    responsavel:      document.getElementById('meta-responsavel').value,
+                    publico:          document.getElementById('meta-publico').value,
+                    objetivo:         document.getElementById('texto-objetivo').value,
+                    visaoGeral:       document.getElementById('texto-visao').value,
+                    equipe:           document.getElementById('texto-equipe').value,
                     apoioPresidencia: document.getElementById('texto-apoio').value,
+                    cronograma:       cronoLinhas.map(l => ({
+                        id:          l.id,
+                        horario:     l.horario,
+                        atividade:   l.atividade,
+                        responsavel: l.responsavel
+                    })),
                     links: linksTemp
                 };
 
@@ -610,7 +941,7 @@
             }
             const e = eventos.find(x => x.id === eventoSelecionadoId);
             document.getElementById('texto-exclusao').innerText = e?.titulo
-                ? `Excluir o evento “${e.titulo}” deste dia?`
+                ? `Excluir o evento "${e.titulo}" deste dia?`
                 : `Excluir este evento deste dia?`;
             window.abrirModalExclusao();
         };
@@ -643,30 +974,20 @@
 
         window.confirmarNovoEvento = async () => {
             if (!exigirAutenticacaoParaEdicao()) return;
-            const dia = parseInt(document.getElementById('novo-dia').value, 10);
+            const dia   = parseInt(document.getElementById('novo-dia').value, 10);
             const titulo = document.getElementById('novo-titulo').value?.trim();
-            const desc = "";
             if (!titulo) return;
 
             try {
-                const ref = doc(db, ...PUBLIC_PATH, dia.toString());
+                const ref  = doc(db, ...PUBLIC_PATH, dia.toString());
                 const snap = await getDoc(ref);
                 const atual = snap.exists() ? normalizarDocDia(dia, snap.data()).eventos : [];
 
                 const novoEvento = {
-                    id: genId(),
-                    titulo,
-                    tipo: "Geral",
-                    horario: "",
-                    local: "",
-                    responsavel: "",
-                    publico: "",
-                    equipe: "",
-                    objetivo: "",
-                    visaoGeral: desc,
-                    detalhamento: "",
-                    apoioPresidencia: "",
-                    links: []
+                    id: genId(), titulo, tipo: "Geral",
+                    horario: "", local: "", responsavel: "", publico: "",
+                    equipe: "", objetivo: "", visaoGeral: "",
+                    apoioPresidencia: "", links: [], cronograma: []
                 };
 
                 atual.push(novoEvento);
@@ -674,8 +995,8 @@
                 if (!ok) return;
 
                 window.fecharModalNovoEvento();
-                diaSelecionadoAtual = dia;
-                eventoSelecionadoId = novoEvento.id;
+                diaSelecionadoAtual  = dia;
+                eventoSelecionadoId  = novoEvento.id;
 
                 const card = document.querySelector(`[data-dia="${dia}"]`);
                 if (card) window.selecionarDia(card, dia, { eventoId: novoEvento.id });
@@ -685,36 +1006,18 @@
             }
         };
 
-        window.abrirModalNovoEventoNoDia = () => {
-            if (!diaSelecionadoAtual) return;
-            document.getElementById('novo-no-dia-data').innerText = `${diaSelecionadoAtual} de Maio de 2026`;
-            document.getElementById('novo-no-dia-titulo').value = '';
-            document.getElementById('modal-novo-no-dia').classList.remove('hidden');
-        };
-        window.fecharModalNovoEventoNoDia = () => document.getElementById('modal-novo-no-dia').classList.add('hidden');
-
         window.confirmarNovoEventoNoDia = async () => {
             if (!diaSelecionadoAtual || !exigirAutenticacaoParaEdicao()) return;
             const titulo = document.getElementById('novo-no-dia-titulo').value?.trim();
-            const desc = "";
             if (!titulo) return;
 
             try {
                 const eventos = [...(eventosData[diaSelecionadoAtual]?.eventos || [])];
                 const novoEvento = {
-                    id: genId(),
-                    titulo,
-                    tipo: "Geral",
-                    horario: "",
-                    local: "",
-                    responsavel: "",
-                    publico: "",
-                    equipe: "",
-                    objetivo: "",
-                    visaoGeral: desc,
-                    detalhamento: "",
-                    apoioPresidencia: "",
-                    links: []
+                    id: genId(), titulo, tipo: "Geral",
+                    horario: "", local: "", responsavel: "", publico: "",
+                    equipe: "", objetivo: "", visaoGeral: "",
+                    apoioPresidencia: "", links: [], cronograma: []
                 };
 
                 eventos.push(novoEvento);
@@ -732,11 +1035,17 @@
             }
         };
 
-        // Helpers de modal
-        window.abrirModalNovoEvento = () => document.getElementById('modal-novo-evento').classList.remove('hidden');
-        window.fecharModalNovoEvento = () => document.getElementById('modal-novo-evento').classList.add('hidden');
-        window.abrirModalExclusao = () => document.getElementById('modal-exclusao').classList.remove('hidden');
-        window.fecharModalExclusao = () => document.getElementById('modal-exclusao').classList.add('hidden');
+        window.abrirModalNovoEventoNoDia = () => {
+            if (!diaSelecionadoAtual) return;
+            document.getElementById('novo-no-dia-data').innerText = `${diaSelecionadoAtual} de Maio de 2026`;
+            document.getElementById('novo-no-dia-titulo').value = '';
+            document.getElementById('modal-novo-no-dia').classList.remove('hidden');
+        };
+        window.fecharModalNovoEventoNoDia = () => document.getElementById('modal-novo-no-dia').classList.add('hidden');
+        window.abrirModalNovoEvento   = () => document.getElementById('modal-novo-evento').classList.remove('hidden');
+        window.fecharModalNovoEvento  = () => document.getElementById('modal-novo-evento').classList.add('hidden');
+        window.abrirModalExclusao     = () => document.getElementById('modal-exclusao').classList.remove('hidden');
+        window.fecharModalExclusao    = () => document.getElementById('modal-exclusao').classList.add('hidden');
 
         window.adicionarLink = () => {
             const n = document.getElementById('novo-link-nome');
@@ -750,11 +1059,7 @@
         window.removerLink = (i) => { linksTemp.splice(i, 1); renderLinks(); };
 
         const select = document.getElementById('novo-dia');
-        for (let i=1; i<=31; i++) select.add(new Option(`${i} de Maio`, i));
-
-        window.handleLogoError = (imgEl) => {
-            try { imgEl.style.display = 'none'; document.getElementById('logo-text')?.classList.remove('hidden'); } catch(e) {}
-        };
+        for (let i = 1; i <= 31; i++) select.add(new Option(`${i} de Maio`, i));
 
         init();
     </script>
