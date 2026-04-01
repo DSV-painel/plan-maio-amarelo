@@ -918,18 +918,10 @@
                 const list = document.createElement('div');
                 list.className = 'mt-2 space-y-1';
 
-                const MAX = 4;
-                eventosFiltrados.slice(0, MAX).forEach((e) => {
+                eventosFiltrados.forEach((e) => {
                     const isSelected = (dia === diaSelecionadoAtual && e.id === eventoSelecionadoId);
                     list.appendChild(criarEvtButton(dia, card, e, isSelected));
                 });
-
-                if (eventosFiltrados.length > MAX) {
-                    const more = document.createElement('div');
-                    more.className = 'text-xs font-semibold text-[#004077] opacity-80 px-1';
-                    more.textContent = `+${eventosFiltrados.length - MAX} mais…`;
-                    list.appendChild(more);
-                }
 
                 // Indicador de eventos ocultados pelo filtro
                 if (filtroAtivo !== 'Todos') {
