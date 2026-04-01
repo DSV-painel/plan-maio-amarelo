@@ -468,7 +468,8 @@
 
         <div class="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
              <div class="text-xs text-gray-400 italic">Dados sincronizados em tempo real.</div>
-             <div class="flex gap-3 items-center">
+             <div class="flex gap-3 items-center flex-wrap justify-end">
+                <button id="btn-mover-acao" class="text-detran px-4 py-2 text-sm font-semibold border rounded bg-white" onclick="window.abrirModalMoverEvento()">Alterar dia</button>
                 <button id="btn-excluir-acao" class="text-red-500 px-4 py-2 text-sm font-semibold border rounded" onclick="window.excluirEvento()">Excluir</button>
                 <button id="btn-salvar" class="bg-green-600 text-white px-6 py-2 rounded shadow font-semibold" onclick="window.salvarAlteracoes()">Salvar Alterações</button>
              </div>
@@ -516,6 +517,28 @@
             <div class="bg-gray-50 p-4 flex justify-end gap-3">
                 <button onclick="window.fecharModalNovoEventoNoDia()" class="px-4 py-2 text-sm">Cancelar</button>
                 <button onclick="window.confirmarNovoEventoNoDia()" class="bg-detran text-white px-6 py-2 rounded-lg text-sm font-bold">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="modal-mover-evento" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[58] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 modal-fade-in overflow-hidden">
+            <div class="bg-detran p-4 flex justify-between items-center"><h3 class="text-white font-bold">Alterar dia do evento</h3></div>
+            <div class="p-6 space-y-4">
+                <div class="text-sm text-gray-600">Escolha o novo dia para este evento.</div>
+                <div class="bg-slate-50 border rounded-lg p-3">
+                    <div class="text-xs text-gray-500 uppercase font-bold mb-1">Evento</div>
+                    <div id="mover-evento-titulo" class="text-detran font-semibold"></div>
+                </div>
+                <div>
+                    <label for="mover-evento-dia" class="text-xs font-bold text-azul-medio uppercase mb-1 block">Novo dia</label>
+                    <select id="mover-evento-dia" class="w-full border rounded-lg p-2.5 bg-white"></select>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-4 flex justify-end gap-3">
+                <button onclick="window.fecharModalMoverEvento()" class="px-4 py-2 text-sm">Cancelar</button>
+                <button onclick="window.confirmarMoverEvento()" class="bg-detran text-white px-6 py-2 rounded-lg text-sm font-bold">Salvar novo dia</button>
             </div>
         </div>
     </div>
@@ -1210,6 +1233,68 @@
         window.abrirModalExclusao     = () => document.getElementById('modal-exclusao').classList.remove('hidden');
         window.fecharModalExclusao    = () => document.getElementById('modal-exclusao').classList.add('hidden');
 
+
+        window.abrirModalMoverEvento = () => {
+            if (!diaSelecionadoAtual || !eventoSelecionadoId) return;
+            const eventos = (eventosData[diaSelecionadoAtual]?.eventos || []);
+            const evento = eventos.find(e => e.id === eventoSelecionadoId);
+            if (!evento) return;
+
+            document.getElementById('mover-evento-titulo').innerText = evento.titulo || 'Evento sem título';
+            document.getElementById('mover-evento-dia').value = String(diaSelecionadoAtual);
+            document.getElementById('modal-mover-evento').classList.remove('hidden');
+        };
+
+        window.fecharModalMoverEvento = () => {
+            document.getElementById('modal-mover-evento').classList.add('hidden');
+        };
+
+        window.confirmarMoverEvento = async () => {
+            if (!diaSelecionadoAtual || !eventoSelecionadoId || !exigirAutenticacaoParaEdicao()) return;
+
+            const novoDia = parseInt(document.getElementById('mover-evento-dia').value, 10);
+            const diaOrigem = diaSelecionadoAtual;
+            if (!novoDia || novoDia === diaOrigem) {
+                window.fecharModalMoverEvento();
+                return;
+            }
+
+            const eventosOrigem = [...(eventosData[diaOrigem]?.eventos || [])];
+            const idx = eventosOrigem.findIndex(e => e.id === eventoSelecionadoId);
+            if (idx === -1) return;
+
+            const [eventoMovido] = eventosOrigem.splice(idx, 1);
+            const eventosDestino = [...(eventosData[novoDia]?.eventos || []), eventoMovido];
+
+            const btnMover = document.querySelector('#modal-mover-evento button.bg-detran');
+            const textoOriginal = btnMover.innerText;
+            btnMover.innerText = 'Movendo...';
+
+            try {
+                if (eventosOrigem.length === 0) {
+                    await deleteDoc(doc(db, ...PUBLIC_PATH, diaOrigem.toString()));
+                } else {
+                    await setDoc(doc(db, ...PUBLIC_PATH, diaOrigem.toString()), { eventos: eventosOrigem });
+                }
+
+                await setDoc(doc(db, ...PUBLIC_PATH, novoDia.toString()), { eventos: eventosDestino });
+
+                window.fecharModalMoverEvento();
+                diaSelecionadoAtual = novoDia;
+                eventoSelecionadoId = eventoMovido.id;
+
+                setTimeout(() => {
+                    const card = document.querySelector(`[data-dia="${novoDia}"]`);
+                    if (card) window.selecionarDia(card, novoDia, { eventoId: eventoMovido.id });
+                }, 150);
+            } catch (error) {
+                console.error('Erro ao mover evento:', error);
+                alert(`Não foi possível alterar o dia do evento: ${error.code || error.message || 'erro desconhecido'}`);
+            } finally {
+                btnMover.innerText = textoOriginal;
+            }
+        };
+
         const escopoComplementar = document.getElementById('escopo-complementar');
         if (escopoComplementar) {
             escopoComplementar.value = localStorage.getItem('maioAmareloEscopoComplementar') || '';
@@ -1219,7 +1304,11 @@
         }
 
         const select = document.getElementById('novo-dia');
-        for (let i = 1; i <= 31; i++) select.add(new Option(`${i} de Maio`, i));
+        const selectMover = document.getElementById('mover-evento-dia');
+        for (let i = 1; i <= 31; i++) {
+            select.add(new Option(`${i} de Maio`, i));
+            if (selectMover) selectMover.add(new Option(`${i} de Maio`, i));
+        }
 
         init();
     </script>
