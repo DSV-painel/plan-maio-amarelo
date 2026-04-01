@@ -231,6 +231,30 @@
 </head>
 
 <body class="p-4 md:p-8 min-h-screen text-slate-700 relative pb-20">
+    <div id="login-overlay" class="fixed inset-0 z-[120] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+            <div class="bg-detran px-6 py-5">
+                <h2 class="text-white text-xl font-bold">Acesso restrito</h2>
+                <p class="text-blue-100 text-sm mt-1">Entre com e-mail e senha cadastrados no Firebase Authentication.</p>
+                <p class="text-blue-100/90 text-xs mt-2">No Firebase Console, habilite Email/Password em Authentication e mantenha as regras do Firestore permitindo leitura para usuários autenticados.</p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label for="login-email" class="text-xs font-bold text-azul-medio uppercase mb-1 block">E-mail</label>
+                    <input type="email" id="login-email" class="meta-input" placeholder="seuemail@dominio.com">
+                </div>
+                <div>
+                    <label for="login-senha" class="text-xs font-bold text-azul-medio uppercase mb-1 block">Senha</label>
+                    <input type="password" id="login-senha" class="meta-input" placeholder="Digite sua senha">
+                </div>
+                <div id="login-erro" class="hidden text-sm text-red-600 font-semibold"></div>
+                <div id="login-info" class="hidden text-sm text-slate-500 font-semibold"></div>
+                <button id="btn-login" type="button" class="w-full bg-detran text-white py-3 rounded-lg font-bold hover:bg-azul-medio transition">
+                    Entrar
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- Faixa institucional -->
     <div class="fixed top-0 left-0 right-0 z-[70]">
         <div class="bg-[#FFFCAD] border-b border-yellow-300 text-[#004077] text-xs md:text-sm font-bold tracking-wide py-2 px-4 flex items-center justify-between">
@@ -269,9 +293,14 @@
                 </div>
             </div>
         </div>
-        <button onclick="window.abrirModalNovoEvento()" class="bg-detran text-white px-6 py-2 rounded-lg font-semibold hover:bg-azul-medio transition shadow-md mt-4 md:mt-0">
-            <i class="fa-solid fa-plus mr-2"></i> Novo Evento
-        </button>
+        <div class="flex gap-3 mt-4 md:mt-0">
+            <button onclick="window.abrirModalNovoEvento()" class="bg-detran text-white px-6 py-2 rounded-lg font-semibold hover:bg-azul-medio transition shadow-md">
+                <i class="fa-solid fa-plus mr-2"></i> Novo Evento
+            </button>
+            <button id="btn-logout" onclick="window.fazerLogout()" class="hidden bg-white text-detran px-5 py-2 rounded-lg font-semibold border border-detran hover:bg-slate-50 transition shadow-sm">
+                <i class="fa-solid fa-right-from-bracket mr-2"></i> Sair
+            </button>
+        </div>
     </header>
 
     <!-- Box de escopo da campanha -->
@@ -562,7 +591,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import {
             getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -598,6 +627,13 @@
         const statusCloud       = document.getElementById('status-cloud');
         const statusAuth        = document.getElementById('status-auth');
         const statusMsg         = document.getElementById('status-msg');
+        const loginOverlay      = document.getElementById('login-overlay');
+        const loginEmailInput   = document.getElementById('login-email');
+        const loginSenhaInput   = document.getElementById('login-senha');
+        const loginErro         = document.getElementById('login-erro');
+        const loginInfo         = document.getElementById('login-info');
+        const btnLogin          = document.getElementById('btn-login');
+        const btnLogout         = document.getElementById('btn-logout');
 
         const PUBLIC_PATH = ['artifacts', 'plan-maioamarelo', 'public', 'data', 'events'];
         const genId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -703,6 +739,10 @@
 
         function iniciarEscutaFirestore() {
             if (unsubscribeSnapshot) return;
+            loadingCalendario.classList.remove('hidden');
+            statusCloud.classList.add('hidden');
+            atualizarStatus('Lendo dados do Firebase...', 'info');
+
             const eventsRef = collection(db, ...PUBLIC_PATH);
             unsubscribeSnapshot = onSnapshot(eventsRef, (snapshot) => {
                 eventosData = {};
@@ -725,39 +765,107 @@
             }, (error) => {
                 console.error('Erro no onSnapshot:', error);
                 loadingCalendario.classList.add('hidden');
-                atualizarStatus(`Erro ao ler a base em nuvem: ${error.code || 'erro-desconhecido'}.`, 'error');
+                statusCloud.classList.add('hidden');
+                atualizarStatus(`Erro ao ler a base em nuvem: ${error.code || 'erro-desconhecido'}. Verifique as regras do Firestore.`, 'error');
+                if (loginErro) {
+                    loginErro.textContent = `Login feito, mas a leitura do Firestore foi bloqueada: ${error.code || 'erro-desconhecido'}.`;
+                    loginErro.classList.remove('hidden');
+                }
             });
         }
 
         async function init() {
             renderizarCalendario();
-            iniciarEscutaFirestore();
 
             onAuthStateChanged(auth, (user) => {
                 authReady = !!user;
+
                 if (user) {
                     statusAuth.classList.remove('hidden');
                     statusAuth.className = 'text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold border border-green-200';
-                    statusAuth.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edição liberada';
+                    statusAuth.innerHTML = `<i class="fa-solid fa-user-check"></i> ${user.email || 'Acesso autorizado'}`;
+                    if (loginOverlay) loginOverlay.classList.add('hidden');
+                    if (btnLogout) btnLogout.classList.remove('hidden');
+                    if (loginErro) {
+                        loginErro.textContent = '';
+                        loginErro.classList.add('hidden');
+                    }
+                    if (loginInfo) {
+                        loginInfo.textContent = '';
+                        loginInfo.classList.add('hidden');
+                    }
+                    atualizarStatus('', 'ok');
+
+                    if (!unsubscribeSnapshot) iniciarEscutaFirestore();
+                } else {
+                    authReady = false;
+                    if (unsubscribeSnapshot) {
+                        unsubscribeSnapshot();
+                        unsubscribeSnapshot = null;
+                    }
+                    eventosData = {};
+                    renderizarCalendario();
+                    painelDetalhes.classList.add('hidden');
+                    if (loginOverlay) loginOverlay.classList.remove('hidden');
+                    if (btnLogout) btnLogout.classList.add('hidden');
+
+                    statusCloud.classList.add('hidden');
+                    statusAuth.classList.remove('hidden');
+                    statusAuth.className = 'text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold border border-amber-200';
+                    statusAuth.innerHTML = '<i class="fa-solid fa-lock"></i> Aguardando login';
+                    atualizarStatus('', 'info');
                 }
             });
 
-            try {
-                const cred = await signInAnonymously(auth);
-                authReady = !!cred?.user;
-                if (authReady) {
-                    statusAuth.classList.remove('hidden');
-                    statusAuth.className = 'text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold border border-green-200';
-                    statusAuth.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edição liberada';
+            btnLogin?.addEventListener('click', async () => {
+                const email = loginEmailInput.value.trim();
+                const senha = loginSenhaInput.value;
+                loginErro.classList.add('hidden');
+                loginErro.textContent = '';
+                if (loginInfo) {
+                    loginInfo.textContent = '';
+                    loginInfo.classList.add('hidden');
                 }
-            } catch (error) {
-                console.warn('Falha no signInAnonymously:', error);
-                authReady = false;
-                statusAuth.classList.remove('hidden');
-                statusAuth.className = 'text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold border border-amber-200';
-                statusAuth.innerHTML = '<i class="fa-solid fa-lock"></i> Leitura pública';
-                atualizarStatus('Base conectada. Para editar, habilite Anonymous em Authentication no Firebase.', 'warn');
-            }
+
+                if (!email || !senha) {
+                    loginErro.textContent = 'Preencha e-mail e senha.';
+                    loginErro.classList.remove('hidden');
+                    return;
+                }
+
+                const textoOriginal = btnLogin.innerHTML;
+                btnLogin.innerHTML = 'Entrando...';
+                btnLogin.disabled = true;
+                if (loginInfo) {
+                    loginInfo.textContent = 'Autenticando e conectando ao Firebase...';
+                    loginInfo.classList.remove('hidden');
+                }
+
+                try {
+                    await signInWithEmailAndPassword(auth, email, senha);
+                    loginSenhaInput.value = '';
+                } catch (error) {
+                    console.error('Erro no login:', error);
+                    const mapa = {
+                        'auth/invalid-credential': 'E-mail ou senha inválidos.',
+                        'auth/invalid-email': 'E-mail inválido.',
+                        'auth/missing-password': 'Digite a senha.',
+                        'auth/too-many-requests': 'Muitas tentativas. Tente novamente em instantes.'
+                    };
+                    loginErro.textContent = mapa[error.code] || 'Não foi possível entrar. Verifique suas credenciais.';
+                    loginErro.classList.remove('hidden');
+                } finally {
+                    btnLogin.innerHTML = textoOriginal;
+                    btnLogin.disabled = false;
+                }
+            });
+
+            loginSenhaInput?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') btnLogin?.click();
+            });
+            loginEmailInput?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') btnLogin?.click();
+            });
         }
 
         /* ════════════════════════════════════════
@@ -1061,7 +1169,7 @@
 
         function exigirAutenticacaoParaEdicao() {
             if (authReady && auth.currentUser) return true;
-            alert('Os dados foram carregados da nuvem, mas a edição exige autenticação anônima ativa no Firebase. Habilite Authentication > Anonymous no projeto plan-maioamarelo.');
+            alert('Faça login com e-mail e senha para acessar e editar o painel. No Firebase Console, habilite Authentication > Email/Password e cadastre os usuários autorizados.');
             return false;
         }
 
@@ -1292,6 +1400,15 @@
                 alert(`Não foi possível alterar o dia do evento: ${error.code || error.message || 'erro desconhecido'}`);
             } finally {
                 btnMover.innerText = textoOriginal;
+            }
+        };
+
+        window.fazerLogout = async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error('Erro ao sair:', error);
+                alert(`Não foi possível sair: ${error.code || error.message || 'erro desconhecido'}`);
             }
         };
 
