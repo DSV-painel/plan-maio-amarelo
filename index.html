@@ -30,7 +30,9 @@
         .dia-card.filtrado-fora { opacity: 0.25; pointer-events: none; }
 
         .input-editavel { background: transparent; border: 1px solid transparent; border-radius: 4px; width: 100%; }
-        .meta-input { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 8px; font-size: 0.875rem; width: 100%; }
+        .meta-input { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; font-size: 0.92rem; width: 100%; min-height: 44px; }
+        .escopo-textarea { width: 100%; min-height: 84px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 0.95rem; color: #334155; background: #fff; resize: vertical; line-height: 1.6; }
+        .escopo-textarea:focus { outline: 2px solid #005ca8; outline-offset: 2px; }
 
         .modal-fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity:0; transform: scale(0.95);} to {opacity:1; transform: scale(1);} }
@@ -125,12 +127,13 @@
         }
 
         .crono-input {
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 5px;
-            padding: 5px 7px;
+            background: #ffffff;
+            border: 1px solid #dbe3ec;
+            border-radius: 6px;
+            padding: 8px 10px;
             font-size: 13px;
             width: 100%;
+            min-height: 42px;
             color: #1e293b;
             font-family: 'Open Sans', sans-serif;
             transition: border-color 0.15s, background 0.15s;
@@ -142,11 +145,20 @@
             box-shadow: 0 0 0 3px rgba(0,92,168,0.1);
         }
         .crono-input.horario {
-            width: 90px;
+            width: 100%;
+            min-width: 92px;
             font-weight: 700;
             color: var(--cor-detran);
             letter-spacing: 0.04em;
             text-align: center;
+        }
+        .crono-textarea {
+            resize: none;
+            overflow: hidden;
+            line-height: 1.35;
+            min-height: 42px;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .crono-btn-remove {
@@ -272,28 +284,32 @@
             <div class="flex gap-3 items-start">
                 <div class="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-[#004077] text-white flex items-center justify-center font-bold text-xs">1</div>
                 <div>
-                    <p class="text-xs font-bold text-[#004077] uppercase tracking-wide mb-0.5">Capital</p>
+                    <p class="text-sm font-bold text-[#004077] uppercase tracking-wide mb-0.5">Capital</p>
                     <p class="text-sm text-slate-600 leading-snug">Calendário de eventos na Capital</p>
                 </div>
             </div>
             <div class="flex gap-3 items-start">
                 <div class="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-[#004077] text-white flex items-center justify-center font-bold text-xs">2</div>
                 <div>
-                    <p class="text-xs font-bold text-[#004077] uppercase tracking-wide mb-0.5">Territórios</p>
-                    <p class="text-sm text-slate-600 leading-snug">Ações nos territórios orientadas pela DSV, integrando ações de educação e blitze educativa</p>
+                    <p class="text-sm font-bold text-[#004077] uppercase tracking-wide mb-0.5">Territórios</p>
+                    <p class="text-sm text-slate-600 leading-snug">Ações nos territórios orientadas pela DSV, integrando educação e fiscalização.</p>
                 </div>
             </div>
             <div class="flex gap-3 items-start">
                 <div class="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-[#004077] text-white flex items-center justify-center font-bold text-xs">3</div>
                 <div>
-                    <p class="text-xs font-bold text-[#004077] uppercase tracking-wide mb-0.5">Redes Sociais</p>
+                    <p class="text-sm font-bold text-[#004077] uppercase tracking-wide mb-0.5">Redes Sociais</p>
                     <p class="text-sm text-slate-600 leading-snug">Campanha em redes sociais <span class="italic text-slate-400">(a definir pela ASCOM)</span></p>
                 </div>
             </div>
         </div>
+        <div class="px-5 py-4 border-t border-yellow-200 bg-white">
+            <label for="escopo-complementar" class="text-sm font-bold text-[#004077] uppercase tracking-wide block mb-2">Campo complementar do escopo</label>
+            <textarea id="escopo-complementar" class="escopo-textarea" placeholder="Adicione aqui uma observação estratégica, direcionamento ou complemento do escopo da campanha."></textarea>
+        </div>
         <div class="px-5 py-3 bg-amber-50 border-t border-yellow-200 flex gap-2 items-start">
             <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm mt-0.5 shrink-0"></i>
-            <p class="text-xs text-amber-800 leading-relaxed">
+            <p class="text-sm text-amber-800 leading-snug">
                 <span class="font-bold">Observação:</span> Ações em planejamento, considerando a definição das estratégias finais alinhadas às orientações relacionadas ao <span class="font-semibold">defeso eleitoral</span>.
             </p>
         </div>
@@ -307,7 +323,8 @@
         <div class="text-center mb-6">
             <h2 class="text-4xl font-extrabold text-detran">Maio</h2>
             <p class="text-lg text-azul-medio font-medium tracking-widest">2026</p>
-            <p id="status-msg" class="mt-2 text-xs text-gray-500">Conectando à base do Firebase...</p>
+            <p id="status-msg" class="hidden"></p>
+            <p class="text-xs text-gray-400 mt-2">Clique no evento para abrir o detalhamento</p>
         </div>
 
         <!-- ── Filtros de categoria ── -->
@@ -355,9 +372,7 @@
                     <span class="text-xs uppercase tracking-widest text-azul-claro font-bold">
                         Eventos no dia: <span id="eventos-count" class="text-white">0</span>
                     </span>
-                    <button id="btn-novo-no-dia" onclick="window.abrirModalNovoEventoNoDia()" class="text-xs font-bold bg-white bg-opacity-10 hover:bg-opacity-20 border border-white border-opacity-20 rounded px-3 py-1">
-                        <i class="fa-solid fa-plus mr-1"></i> Adicionar evento neste dia
-                    </button>
+                    
                 </div>
                 <input type="text" id="detalhe-titulo" class="input-editavel text-2xl font-bold text-white mb-1" value="">
                 <div class="flex items-center gap-2 mt-1">
@@ -374,18 +389,18 @@
             </div>
         </div>
 
-        <div class="bg-gray-50 px-6 py-4 border-b grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-gray-50 px-6 py-4 border-b grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-                <label class="text-xs font-bold text-azul-medio uppercase mb-1 block">Horário</label>
-                <input type="text" id="meta-horario" class="meta-input">
+                <label class="text-xs font-bold text-azul-medio uppercase mb-1 block">Horário início</label>
+                <input type="time" id="meta-horario-inicio" class="meta-input">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-azul-medio uppercase mb-1 block">Horário fim</label>
+                <input type="time" id="meta-horario-fim" class="meta-input">
             </div>
             <div>
                 <label class="text-xs font-bold text-azul-medio uppercase mb-1 block">Local</label>
                 <input type="text" id="meta-local" class="meta-input">
-            </div>
-            <div>
-                <label class="text-xs font-bold text-azul-medio uppercase mb-1 block">Responsável</label>
-                <input type="text" id="meta-responsavel" class="meta-input">
             </div>
             <div>
                 <label class="text-xs font-bold text-azul-medio uppercase mb-1 block">Público Est.</label>
@@ -393,8 +408,8 @@
             </div>
         </div>
 
-        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
-            <div class="md:col-span-2 flex flex-col gap-6">
+        <div class="p-6 bg-white">
+            <div class="flex flex-col gap-6">
                 <div class="bg-white rounded-lg border p-4">
                     <h4 class="text-detran font-bold text-sm mb-3">Objetivo</h4>
                     <textarea id="texto-objetivo" class="w-full text-sm text-gray-600 resize-none h-[90px] focus:outline-none" placeholder="Qual é o objetivo deste evento?"></textarea>
@@ -425,9 +440,10 @@
                             <thead>
                                 <tr>
                                     <th style="width:32px"></th>
-                                    <th style="width:105px">Horário</th>
+                                    <th style="width:110px">Início</th>
+                                    <th style="width:110px">Fim</th>
                                     <th>Atividade / Descrição</th>
-                                    <th style="width:170px">Responsável</th>
+                                    <th style="width:240px">Responsável</th>
                                     <th style="width:40px"></th>
                                 </tr>
                             </thead>
@@ -446,17 +462,8 @@
                 </div>
             </div>
 
-            <div class="md:col-span-1 flex flex-col gap-4">
-                <div class="bg-[var(--cor-azul-claro)] bg-opacity-10 rounded-lg border border-azul-claro p-4 h-full">
-                    <h4 class="text-detran font-bold text-sm mb-3">Documentos</h4>
-                    <div id="lista-links" class="space-y-2 mb-4"></div>
-                    <div class="mt-auto border-t border-azul-claro pt-3">
-                        <input type="text" id="novo-link-nome" placeholder="Nome" class="text-xs p-2 rounded border w-full mb-2">
-                        <input type="text" id="novo-link-url" placeholder="Link (URL)" class="text-xs p-2 rounded border w-full mb-2">
-                        <button onclick="window.adicionarLink()" class="bg-detran text-white text-xs font-bold py-2 rounded w-full">Vincular</button>
-                    </div>
-                </div>
-            </div>
+        </div>
+
         </div>
 
         <div class="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
@@ -554,7 +561,6 @@
         let eventosData = {};
         let diaSelecionadoAtual = null;
         let eventoSelecionadoId = null;
-        let linksTemp = [];
         let authReady = false;
         let unsubscribeSnapshot = null;
         let filtroAtivo = 'Todos'; // ← estado do filtro
@@ -639,7 +645,6 @@
                 const eventos = raw.eventos.map(e => ({
                     ...e,
                     id: e.id || genId(),
-                    links: Array.isArray(e.links) ? e.links : [],
                     cronograma: Array.isArray(e.cronograma) ? e.cronograma : []
                 }));
                 return { eventos };
@@ -648,7 +653,8 @@
                 id: `legacy-${dia}`,
                 titulo: raw.titulo || "Novo Planejamento",
                 tipo: raw.tipo || "Geral",
-                horario: raw.horario || "",
+                horarioInicio: raw.horarioInicio || raw.horario || "",
+                horarioFim: raw.horarioFim || "",
                 local: raw.local || "",
                 responsavel: raw.responsavel || "",
                 publico: raw.publico || "",
@@ -657,15 +663,15 @@
                 visaoGeral: raw.visaoGeral || "",
                 detalhamento: raw.detalhamento || "",
                 apoioPresidencia: raw.apoioPresidencia || "",
-                links: Array.isArray(raw.links) ? raw.links : [],
                 cronograma: []
             };
             return { eventos: [legacy] };
         }
 
         function atualizarStatus(texto, tipo = 'info') {
-            statusMsg.textContent = texto;
-            statusMsg.className = 'mt-2 text-xs';
+            statusMsg.textContent = texto || '';
+            statusMsg.className = texto ? 'mt-2 text-xs' : 'hidden';
+            if (!texto) return;
             if (tipo === 'ok')    statusMsg.classList.add('text-green-700');
             else if (tipo === 'warn')  statusMsg.classList.add('text-amber-700');
             else if (tipo === 'error') statusMsg.classList.add('text-red-600');
@@ -685,7 +691,7 @@
                 });
                 loadingCalendario.classList.add('hidden');
                 statusCloud.classList.remove('hidden');
-                atualizarStatus(`Base carregada da nuvem. ${snapshot.size} dia(s) com registros.`, 'ok');
+                atualizarStatus('', 'ok');
                 renderizarCalendario();
                 atualizarBadgeFiltro();
 
@@ -742,7 +748,7 @@
 
             if (cronoLinhas.length === 0) {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="5" class="crono-empty">
+                tr.innerHTML = `<td colspan="6" class="crono-empty">
                     <i class="fa-regular fa-calendar-xmark text-2xl block mb-2 opacity-30"></i>
                     Nenhuma atividade cadastrada. Clique em "Adicionar linha" para começar.
                 </td>`;
@@ -766,16 +772,18 @@
                         </span>
                     </td>
                     <td>
-                        <input type="text" class="crono-input horario" placeholder="09:00"
-                            value="${escapeAttr(linha.horario)}" data-field="horario" data-id="${linha.id}">
+                        <input type="time" class="crono-input horario" placeholder="09:00"
+                            value="${escapeAttr(linha.inicio)}" data-field="inicio" data-id="${linha.id}">
                     </td>
                     <td>
-                        <input type="text" class="crono-input" placeholder="Descreva a atividade..."
-                            value="${escapeAttr(linha.atividade)}" data-field="atividade" data-id="${linha.id}">
+                        <input type="time" class="crono-input horario" placeholder="10:00"
+                            value="${escapeAttr(linha.fim)}" data-field="fim" data-id="${linha.id}">
                     </td>
                     <td>
-                        <input type="text" class="crono-input" placeholder="Nome do responsável"
-                            value="${escapeAttr(linha.responsavel)}" data-field="responsavel" data-id="${linha.id}">
+                        <textarea class="crono-input crono-textarea" placeholder="Descreva a atividade..." data-field="atividade" data-id="${linha.id}">${escapeHtml(linha.atividade)}</textarea>
+                    </td>
+                    <td>
+                        <textarea class="crono-input crono-textarea" placeholder="Nome do responsável" data-field="responsavel" data-id="${linha.id}">${escapeHtml(linha.responsavel)}</textarea>
                     </td>
                     <td>
                         <button type="button" class="crono-btn-remove" title="Remover linha" data-remove="${linha.id}">
@@ -793,10 +801,13 @@
                     const field = e.target.dataset.field;
                     const l = cronoLinhas.find(x => x.id === id);
                     if (l) l[field] = e.target.value;
+                    if (e.target.classList.contains('crono-textarea')) autoResizeTextarea(e.target);
                     const badge = document.getElementById('crono-count-badge');
                     if (badge) badge.textContent = `${cronoLinhas.length} atividade${cronoLinhas.length > 1 ? 's' : ''}`;
                 });
             });
+
+            tbody.querySelectorAll('.crono-textarea').forEach(autoResizeTextarea);
 
             tbody.querySelectorAll('[data-remove]').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -834,14 +845,24 @@
         }
 
         window.cronoAdicionarLinha = () => {
-            cronoLinhas.push({ id: cronoGenId(), horario: '', atividade: '', responsavel: '' });
+            cronoLinhas.push({ id: cronoGenId(), inicio: '', fim: '', atividade: '', responsavel: '' });
             cronoRenderizar();
             const inputs = document.querySelectorAll('#crono-tbody .crono-input.horario');
-            if (inputs.length) inputs[inputs.length - 1].focus();
+            if (inputs.length) inputs[inputs.length - 2]?.focus();
         };
 
         function escapeAttr(str) {
             return (str || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function autoResizeTextarea(el) {
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = `${Math.max(el.scrollHeight, 42)}px`;
         }
 
         /* ════════════════════════════════════════
@@ -954,9 +975,9 @@
             sel.value = cat;
             sel.style.color = catColor(cat);
 
-            document.getElementById('meta-horario').value      = e.horario    || "";
+            document.getElementById('meta-horario-inicio').value = e.horarioInicio || '';
+            document.getElementById('meta-horario-fim').value    = e.horarioFim || '';
             document.getElementById('meta-local').value        = e.local      || "";
-            document.getElementById('meta-responsavel').value  = e.responsavel|| "";
             document.getElementById('meta-publico').value      = e.publico    || "";
             document.getElementById('texto-objetivo').value    = e.objetivo   || "";
             document.getElementById('texto-visao').value       = e.visaoGeral || "";
@@ -964,12 +985,9 @@
             document.getElementById('texto-apoio').value       = e.apoioPresidencia || "";
 
             cronoLinhas = Array.isArray(e.cronograma)
-                ? e.cronograma.map(l => ({ id: l.id || cronoGenId(), horario: l.horario || '', atividade: l.atividade || '', responsavel: l.responsavel || '' }))
+                ? e.cronograma.map(l => ({ id: l.id || cronoGenId(), inicio: l.inicio || l.horario || '', fim: l.fim || '', atividade: l.atividade || '', responsavel: l.responsavel || '' }))
                 : [];
             cronoRenderizar();
-
-            linksTemp = Array.isArray(e.links) ? e.links : [];
-            renderLinks();
         }
 
         function limparForm() {
@@ -977,9 +995,9 @@
             const sel = document.getElementById('detalhe-subtitulo');
             sel.value = 'Geral';
             sel.style.color = catColor('Geral');
-            document.getElementById('meta-horario').value      = "";
+            document.getElementById('meta-horario-inicio').value = '';
+            document.getElementById('meta-horario-fim').value    = '';
             document.getElementById('meta-local').value        = "";
-            document.getElementById('meta-responsavel').value  = "";
             document.getElementById('meta-publico').value      = "";
             document.getElementById('texto-objetivo').value    = "";
             document.getElementById('texto-visao').value       = "";
@@ -987,8 +1005,6 @@
             document.getElementById('texto-apoio').value       = "";
             cronoLinhas = [];
             cronoRenderizar();
-            linksTemp = [];
-            renderLinks();
         }
 
         window.selecionarDia = (card, dia, opts = {}) => {
@@ -1026,15 +1042,7 @@
             painelDetalhes.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         };
 
-        function renderLinks() {
-            const container = document.getElementById('lista-links');
-            container.innerHTML = linksTemp.map((l, i) => `
-                <div class="flex justify-between items-center bg-white border p-2 text-xs rounded">
-                    <a href="${l.url}" target="_blank" class="text-blue-600 truncate">${l.nome}</a>
-                    <button onclick="window.removerLink(${i})" class="text-red-300">×</button>
-                </div>
-            `).join('') || '<p class="text-xs text-gray-400 italic">Nenhum documento.</p>';
-        }
+        function renderLinks() {}
 
         function exigirAutenticacaoParaEdicao() {
             if (authReady && auth.currentUser) return true;
@@ -1065,9 +1073,9 @@
                     ...eventos[idx],
                     titulo:           document.getElementById('detalhe-titulo').value,
                     tipo:             novaCategoria,
-                    horario:          document.getElementById('meta-horario').value,
+                    horarioInicio:    document.getElementById('meta-horario-inicio').value,
+                    horarioFim:       document.getElementById('meta-horario-fim').value,
                     local:            document.getElementById('meta-local').value,
-                    responsavel:      document.getElementById('meta-responsavel').value,
                     publico:          document.getElementById('meta-publico').value,
                     objetivo:         document.getElementById('texto-objetivo').value,
                     visaoGeral:       document.getElementById('texto-visao').value,
@@ -1075,11 +1083,11 @@
                     apoioPresidencia: document.getElementById('texto-apoio').value,
                     cronograma:       cronoLinhas.map(l => ({
                         id:          l.id,
-                        horario:     l.horario,
+                        inicio:      l.inicio,
+                        fim:         l.fim,
                         atividade:   l.atividade,
                         responsavel: l.responsavel
-                    })),
-                    links: linksTemp
+                    }))
                 };
 
                 const ok = await salvarDiaNoFirestore(diaSelecionadoAtual, eventos);
@@ -1147,9 +1155,9 @@
 
                 const novoEvento = {
                     id: genId(), titulo, tipo,
-                    horario: "", local: "", responsavel: "", publico: "",
+                    horarioInicio: "", horarioFim: "", local: "", responsavel: "", publico: "",
                     equipe: "", objetivo: "", visaoGeral: "",
-                    apoioPresidencia: "", links: [], cronograma: []
+                    apoioPresidencia: "", cronograma: []
                 };
 
                 atual.push(novoEvento);
@@ -1178,9 +1186,9 @@
                 const eventos = [...(eventosData[diaSelecionadoAtual]?.eventos || [])];
                 const novoEvento = {
                     id: genId(), titulo, tipo,
-                    horario: "", local: "", responsavel: "", publico: "",
+                    horarioInicio: "", horarioFim: "", local: "", responsavel: "", publico: "",
                     equipe: "", objetivo: "", visaoGeral: "",
-                    apoioPresidencia: "", links: [], cronograma: []
+                    apoioPresidencia: "", cronograma: []
                 };
 
                 eventos.push(novoEvento);
@@ -1210,16 +1218,13 @@
         window.abrirModalExclusao     = () => document.getElementById('modal-exclusao').classList.remove('hidden');
         window.fecharModalExclusao    = () => document.getElementById('modal-exclusao').classList.add('hidden');
 
-        window.adicionarLink = () => {
-            const n = document.getElementById('novo-link-nome');
-            const u = document.getElementById('novo-link-url');
-            if (n.value && u.value) {
-                linksTemp.push({ nome: n.value, url: u.value });
-                renderLinks();
-                n.value = ''; u.value = '';
-            }
-        };
-        window.removerLink = (i) => { linksTemp.splice(i, 1); renderLinks(); };
+        const escopoComplementar = document.getElementById('escopo-complementar');
+        if (escopoComplementar) {
+            escopoComplementar.value = localStorage.getItem('maioAmareloEscopoComplementar') || '';
+            escopoComplementar.addEventListener('input', () => {
+                localStorage.setItem('maioAmareloEscopoComplementar', escopoComplementar.value);
+            });
+        }
 
         const select = document.getElementById('novo-dia');
         for (let i = 1; i <= 31; i++) select.add(new Option(`${i} de Maio`, i));
